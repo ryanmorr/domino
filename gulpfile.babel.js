@@ -24,7 +24,7 @@ const config = {
     test: {
         runner: './test/runner.html',
         specs: './test/specs/*.js',
-        entryFile: './test/specs/index.js',
+        entryFile: './test/specs/domino.js',
         outputDir: './test/',
         outputFile: 'tests.js'
     }
