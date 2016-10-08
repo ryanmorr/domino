@@ -4,7 +4,7 @@
  *
  * @param {Node} node
  * @param {String} name
- * @return {String|Undefined}
+ * @return {String|Null}
  * @api private
  */
 function getAttribute(node, name) {
