@@ -88,19 +88,16 @@ function domino(node = document) {
  * `Domino` instances
  *
  * @param {Node} node (optional)
- * @return {Boolean}
  * @api public
  */
 domino.destroy = function destroy(node = document) {
-    let i = items.length;
-    while (i--) {
-        const item = items[i];
+    items.forEach((item, i) => {
         if (item.getVirtualDOM() === node) {
+            item.destroy();
             items.splice(i, 1);
-            return true;
+            return;
         }
-    }
-    return false;
+    });
 };
 
 /**

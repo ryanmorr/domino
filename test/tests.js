@@ -8269,21 +8269,18 @@ function domino() {
  * `Domino` instances
  *
  * @param {Node} node (optional)
- * @return {Boolean}
  * @api public
  */
 domino.destroy = function destroy() {
     var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
 
-    var i = items.length;
-    while (i--) {
-        var item = items[i];
+    items.forEach(function (item, i) {
         if (item.getVirtualDOM() === node) {
+            item.destroy();
             items.splice(i, 1);
-            return true;
+            return;
         }
-    }
-    return false;
+    });
 };
 
 /**
@@ -8427,7 +8424,11 @@ describe('domino', function () {
     it('should support destroying the instance', function () {
         var source = parseHTML('<div></div>');
         var node = (0, _domino2.default)(source);
-        (0, _chai.expect)(_domino2.default.destroy(node)).to.equal(true);
+        _domino2.default.destroy(node);
+        node.setAttribute('id', 'foo');
+        asap(function () {
+            (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
+        });
     });
 });
 

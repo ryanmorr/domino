@@ -57,6 +57,10 @@ describe('domino', () => {
     it('should support destroying the instance', () => {
         const source = parseHTML('<div></div>');
         const node = domino(source);
-        expect(domino.destroy(node)).to.equal(true);
+        domino.destroy(node);
+        node.setAttribute('id', 'foo');
+        asap(() => {
+            expect(source.hasAttribute('id')).to.equal(false);
+        });
     });
 });
