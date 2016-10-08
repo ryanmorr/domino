@@ -8303,17 +8303,14 @@ exports.default = patch;
  * Patch a source node to match
  * the virtual node
  *
- * @param {NamedNodeMap} attrs
+ * @param {Node} node
  * @param {String} name
  * @return {String|Undefined}
  * @api private
  */
-function getAttribute(attrs, name) {
-    for (var i = attrs.length - 1; i >= 0; i--) {
-        if (attrs[i].name === name) {
-            return attrs[i].value;
-        }
-    }
+function getAttribute(node, name) {
+    var value = name in node ? node[name] : node.getAttribute(name);
+    return value == null ? null : value;
 }
 
 /**
@@ -8347,7 +8344,7 @@ function patch(node, vnode) {
         var nodeAttrs = node.attributes;
         for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
             var name = nodeAttrs[_i3].name;
-            if (getAttribute(vnodeAttrs, name) === undefined) {
+            if (getAttribute(vnode, name) === null) {
                 node.removeAttribute(name);
             }
         }
@@ -8355,7 +8352,7 @@ function patch(node, vnode) {
             var attr = vnodeAttrs[_i4];
             var _name = attr.name;
             var value = attr.value;
-            if (getAttribute(nodeAttrs, _name) !== value) {
+            if (getAttribute(node, _name) !== value) {
                 node.setAttribute(_name, value);
             }
         }
