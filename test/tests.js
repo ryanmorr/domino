@@ -8192,7 +8192,7 @@ var Domino = function () {
         this.observer.observe(this.vdom, {
             childList: true,
             attributes: true,
-            characterData: false,
+            characterData: true,
             subtree: true
         });
     }
@@ -8292,24 +8292,26 @@ function getAttribute(attrs, name) {
  * @api private
  */
 function patch(node, vnode) {
-    var vnodeAttrs = vnode.attributes;
-    var nodeAttrs = node.attributes;
-    var vnodeChildNodes = vnode.childNodes;
-    var nodeChildNodes = node.childNodes;
-    for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
-        patch(nodeChildNodes[i], vnodeChildNodes[i]);
-    }
-    if (nodeChildNodes.length > vnodeChildNodes.length) {
-        for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
-            node.removeChild(nodeChildNodes[_i]);
+    if (vnode.hasChildNodes()) {
+        var vnodeChildNodes = vnode.childNodes;
+        var nodeChildNodes = node.childNodes;
+        for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
+            patch(nodeChildNodes[i], vnodeChildNodes[i]);
+        }
+        if (nodeChildNodes.length > vnodeChildNodes.length) {
+            for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
+                node.removeChild(nodeChildNodes[_i]);
+            }
+        }
+        if (nodeChildNodes.length < vnodeChildNodes.length) {
+            for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
+                node.appendChild(vnodeChildNodes[_i2].cloneNode(true));
+            }
         }
     }
-    if (nodeChildNodes.length < vnodeChildNodes.length) {
-        for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
-            node.appendChild(vnodeChildNodes[_i2].cloneNode(true));
-        }
-    }
-    if (vnodeAttrs) {
+    if (vnode.hasAttributes()) {
+        var vnodeAttrs = vnode.attributes;
+        var nodeAttrs = node.attributes;
         for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
             var name = nodeAttrs[_i3].name;
             if (getAttribute(vnodeAttrs, name) === undefined) {

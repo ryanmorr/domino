@@ -24,24 +24,26 @@ function getAttribute(attrs, name) {
  * @api private
  */
 export default function patch(node, vnode) {
-    const vnodeAttrs = vnode.attributes;
-    const nodeAttrs = node.attributes;
-    const vnodeChildNodes = vnode.childNodes;
-    const nodeChildNodes = node.childNodes;
-    for (let i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
-        patch(nodeChildNodes[i], vnodeChildNodes[i]);
-    }
-    if (nodeChildNodes.length > vnodeChildNodes.length) {
-        for (let i = nodeChildNodes.length - 1; i >= vnodeChildNodes.length; i--) {
-            node.removeChild(nodeChildNodes[i]);
+    if (vnode.hasChildNodes()) {
+        const vnodeChildNodes = vnode.childNodes;
+        const nodeChildNodes = node.childNodes;
+        for (let i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
+            patch(nodeChildNodes[i], vnodeChildNodes[i]);
+        }
+        if (nodeChildNodes.length > vnodeChildNodes.length) {
+            for (let i = nodeChildNodes.length - 1; i >= vnodeChildNodes.length; i--) {
+                node.removeChild(nodeChildNodes[i]);
+            }
+        }
+        if (nodeChildNodes.length < vnodeChildNodes.length) {
+            for (let i = nodeChildNodes.length; i < vnodeChildNodes.length; i++) {
+                node.appendChild(vnodeChildNodes[i].cloneNode(true));
+            }
         }
     }
-    if (nodeChildNodes.length < vnodeChildNodes.length) {
-        for (let i = nodeChildNodes.length; i < vnodeChildNodes.length; i++) {
-            node.appendChild(vnodeChildNodes[i].cloneNode(true));
-        }
-    }
-    if (vnodeAttrs) {
+    if (vnode.hasAttributes()) {
+        const vnodeAttrs = vnode.attributes;
+        const nodeAttrs = node.attributes;
         for (let i = nodeAttrs.length - 1; i >= 0; i--) {
             const name = nodeAttrs[i].name;
             if (getAttribute(vnodeAttrs, name) === undefined) {
