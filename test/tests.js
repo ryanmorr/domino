@@ -8156,8 +8156,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
 
-exports.default = domino;
-
 var _patch = require('./patch');
 
 var _patch2 = _interopRequireDefault(_patch);
@@ -8167,11 +8165,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
+ * Cache of all `Domino` instances
+ */
+var items = [];
+
+/**
  * Virtual DOM class
  *
  * @class Domino
  * @api public
  */
+
 var Domino = function () {
 
     /**
@@ -8255,8 +8259,37 @@ var Domino = function () {
 function domino() {
     var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
 
-    return new Domino(node);
+    var dom = new Domino(node);
+    items.push(dom);
+    return dom.getVirtualDOM();
 }
+
+/**
+ * Factory function for creating
+ * `Domino` instances
+ *
+ * @param {Node} node (optional)
+ * @return {Boolean}
+ * @api public
+ */
+domino.destroy = function destroy() {
+    var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
+
+    var i = items.length;
+    while (i--) {
+        var item = items[i];
+        if (item.getVirtualDOM() === node) {
+            items.splice(i, 1);
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
+ * Export the `domino` function
+ */
+exports.default = domino;
 module.exports = exports['default'];
 
 },{"./patch":42}],42:[function(require,module,exports){
@@ -8360,8 +8393,7 @@ function asap() {
 describe('domino', function () {
     it('should support adding attributes', function () {
         var source = parseHTML('<div></div>');
-        var dom = (0, _domino2.default)(source);
-        var node = dom.getVirtualDOM();
+        var node = (0, _domino2.default)(source);
         node.setAttribute('id', 'foo');
         asap(function () {
             (0, _chai.expect)(source.id).to.equal('foo');
@@ -8370,8 +8402,7 @@ describe('domino', function () {
 
     it('should support removing attributes', function () {
         var source = parseHTML('<div id="foo"></div>');
-        var dom = (0, _domino2.default)(source);
-        var node = dom.getVirtualDOM();
+        var node = (0, _domino2.default)(source);
         node.removeAttribute('id');
         asap(function () {
             (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
@@ -8380,8 +8411,7 @@ describe('domino', function () {
 
     it('should support adding nodes', function () {
         var source = parseHTML('<div></div>');
-        var dom = (0, _domino2.default)(source);
-        var node = dom.getVirtualDOM();
+        var node = (0, _domino2.default)(source);
         node.appendChild(document.createTextNode('foo'));
         asap(function () {
             (0, _chai.expect)(source.textContent).to.equal('foo');
@@ -8390,12 +8420,17 @@ describe('domino', function () {
 
     it('should support removing nodes', function () {
         var source = parseHTML('<div>foo</div>');
-        var dom = (0, _domino2.default)(source);
-        var node = dom.getVirtualDOM();
+        var node = (0, _domino2.default)(source);
         node.removeChild(node.firstChild);
         asap(function () {
             (0, _chai.expect)(source.textContent).to.equal('');
         });
+    });
+
+    it('should support destroying the instance', function () {
+        var source = parseHTML('<div></div>');
+        var node = (0, _domino2.default)(source);
+        (0, _chai.expect)(_domino2.default.destroy(node)).to.equal(true);
     });
 });
 

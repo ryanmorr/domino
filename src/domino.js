@@ -4,6 +4,11 @@
 import patch from './patch';
 
 /**
+ * Cache of all `Domino` instances
+ */
+const items = [];
+
+/**
  * Virtual DOM class
  *
  * @class Domino
@@ -72,6 +77,33 @@ class Domino {
  * @return {Domino}
  * @api public
  */
-export default function domino(node = document) {
-    return new Domino(node);
+function domino(node = document) {
+    const dom = new Domino(node);
+    items.push(dom);
+    return dom.getVirtualDOM();
 }
+
+/**
+ * Factory function for creating
+ * `Domino` instances
+ *
+ * @param {Node} node (optional)
+ * @return {Boolean}
+ * @api public
+ */
+domino.destroy = function destroy(node = document) {
+    let i = items.length;
+    while (i--) {
+        const item = items[i];
+        if (item.getVirtualDOM() === node) {
+            items.splice(i, 1);
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
+ * Export the `domino` function
+ */
+export default domino;

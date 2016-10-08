@@ -20,8 +20,7 @@ function asap() {
 describe('domino', () => {
     it('should support adding attributes', () => {
         const source = parseHTML('<div></div>');
-        const dom = domino(source);
-        const node = dom.getVirtualDOM();
+        const node = domino(source);
         node.setAttribute('id', 'foo');
         asap(() => {
             expect(source.id).to.equal('foo');
@@ -30,8 +29,7 @@ describe('domino', () => {
 
     it('should support removing attributes', () => {
         const source = parseHTML('<div id="foo"></div>');
-        const dom = domino(source);
-        const node = dom.getVirtualDOM();
+        const node = domino(source);
         node.removeAttribute('id');
         asap(() => {
             expect(source.hasAttribute('id')).to.equal(false);
@@ -40,8 +38,7 @@ describe('domino', () => {
 
     it('should support adding nodes', () => {
         const source = parseHTML('<div></div>');
-        const dom = domino(source);
-        const node = dom.getVirtualDOM();
+        const node = domino(source);
         node.appendChild(document.createTextNode('foo'));
         asap(() => {
             expect(source.textContent).to.equal('foo');
@@ -50,11 +47,16 @@ describe('domino', () => {
 
     it('should support removing nodes', () => {
         const source = parseHTML('<div>foo</div>');
-        const dom = domino(source);
-        const node = dom.getVirtualDOM();
+        const node = domino(source);
         node.removeChild(node.firstChild);
         asap(() => {
             expect(source.textContent).to.equal('');
         });
+    });
+
+    it('should support destroying the instance', () => {
+        const source = parseHTML('<div></div>');
+        const node = domino(source);
+        expect(domino.destroy(node)).to.equal(true);
     });
 });
