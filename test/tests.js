@@ -8403,21 +8403,54 @@ describe('domino', function () {
         });
     });
 
-    it('should support adding nodes', function () {
+    it('should support adding elements', function () {
         var source = parseHTML('<div></div>');
         var node = (0, _domino2.default)(source);
-        node.appendChild(document.createTextNode('foo'));
+        node.appendChild(document.createElement('span'));
+        asap(function () {
+            (0, _chai.expect)(source.firstChild.nodeName).to.equal('SPAN');
+        });
+    });
+
+    it('should support removing elements', function () {
+        var source = parseHTML('<div><span></span></div>');
+        var node = (0, _domino2.default)(source);
+        node.removeChild(node.firstChild);
+        asap(function () {
+            (0, _chai.expect)(source.firstChild).to.equal(null);
+        });
+    });
+
+    it('should support adding text nodes', function () {
+        var source = parseHTML('<div></div>');
+        var node = (0, _domino2.default)(source);
+        var text = document.createTextNode('foo');
+        node.appendChild(text);
         asap(function () {
             (0, _chai.expect)(source.textContent).to.equal('foo');
         });
     });
 
-    it('should support removing nodes', function () {
+    it('should support removing text nodes', function () {
         var source = parseHTML('<div>foo</div>');
         var node = (0, _domino2.default)(source);
         node.removeChild(node.firstChild);
         asap(function () {
             (0, _chai.expect)(source.textContent).to.equal('');
+        });
+    });
+
+    it('should support changing text node data', function () {
+        var source = parseHTML('<div></div>');
+        var node = (0, _domino2.default)(source);
+        var text = document.createTextNode('foo');
+        node.appendChild(text);
+        asap(function () {
+            (0, _chai.expect)(source.textContent).to.equal('foo');
+            text.data = 'bar';
+            asap(function () {
+                (0, _chai.expect)(source.textContent).to.equal('bar');
+            });
         });
     });
 

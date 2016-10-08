@@ -36,21 +36,54 @@ describe('domino', () => {
         });
     });
 
-    it('should support adding nodes', () => {
+    it('should support adding elements', () => {
         const source = parseHTML('<div></div>');
         const node = domino(source);
-        node.appendChild(document.createTextNode('foo'));
+        node.appendChild(document.createElement('span'));
+        asap(() => {
+            expect(source.firstChild.nodeName).to.equal('SPAN');
+        });
+    });
+
+    it('should support removing elements', () => {
+        const source = parseHTML('<div><span></span></div>');
+        const node = domino(source);
+        node.removeChild(node.firstChild);
+        asap(() => {
+            expect(source.firstChild).to.equal(null);
+        });
+    });
+
+    it('should support adding text nodes', () => {
+        const source = parseHTML('<div></div>');
+        const node = domino(source);
+        const text = document.createTextNode('foo');
+        node.appendChild(text);
         asap(() => {
             expect(source.textContent).to.equal('foo');
         });
     });
 
-    it('should support removing nodes', () => {
+    it('should support removing text nodes', () => {
         const source = parseHTML('<div>foo</div>');
         const node = domino(source);
         node.removeChild(node.firstChild);
         asap(() => {
             expect(source.textContent).to.equal('');
+        });
+    });
+
+    it('should support changing text node data', () => {
+        const source = parseHTML('<div></div>');
+        const node = domino(source);
+        const text = document.createTextNode('foo');
+        node.appendChild(text);
+        asap(() => {
+            expect(source.textContent).to.equal('foo');
+            text.data = 'bar';
+            asap(() => {
+                expect(source.textContent).to.equal('bar');
+            });
         });
     });
 
