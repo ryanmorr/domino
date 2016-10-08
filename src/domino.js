@@ -27,7 +27,7 @@ class Domino {
         this.observer.observe(this.vdom, {
             childList: true,
             attributes: true,
-            characterData: false,
+            characterData: true,
             subtree: true
         });
     }
