@@ -16018,6 +16018,16 @@ describe('domino', function () {
         });
     });
 
+    it('should support HTML entities', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.innerHTML = '&copy;';
+        frame(function () {
+            (0, _chai.expect)(source.firstChild.nodeValue).to.equal('©');
+            done();
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);

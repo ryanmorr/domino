@@ -241,6 +241,16 @@ describe('domino', () => {
         });
     });
 
+    it('should support HTML entities', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        vnode.innerHTML = '&copy;';
+        frame(() => {
+            expect(source.firstChild.nodeValue).to.equal('©');
+            done();
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
