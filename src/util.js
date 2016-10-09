@@ -1,4 +1,10 @@
 /**
+ * Common variables
+ */
+let frame;
+const batch = [];
+
+/**
  * Resolve a DOM node to return
  * an element node
  *
@@ -30,4 +36,42 @@ export function findIndex(arr, fn) {
         }
     }
     return -1;
+}
+
+/**
+ * Does the provided root element contain
+ * the provided node
+ *
+ * @param {Element} root
+ * @param {Element} el
+ * @return {Boolean}
+ * @api private
+ */
+export function contains(root, el) {
+    if ('contains' in root) {
+        return root.contains(el);
+    }
+    return !!(root.compareDocumentPosition(el) & 16);
+}
+
+/**
+ * Use `requestAnimationFrame` to
+ * batch DOM updates to boost
+ * performance
+ *
+ * @param {Function} fn
+ * @api private
+ */
+export function updateDOM(fn) {
+    if (frame) {
+        cancelAnimationFrame(frame);
+    }
+    batch.push(fn);
+    frame = requestAnimationFrame(() => {
+        frame = null;
+        let render;
+        while ((render = batch.shift())) {
+            render();
+        }
+    });
 }

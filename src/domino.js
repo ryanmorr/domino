@@ -2,7 +2,7 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex } from './util';
+import { getNode, findIndex, contains, updateDOM } from './util';
 
 /**
  * Cache of all `Domino` instances
@@ -77,13 +77,41 @@ class Domino {
     }
 
     /**
+     * Schedule a frame to update the
+     * source DOM tree
+     *
+     * @api private
+     */
+    update() {
+        if (!this.renderer) {
+            this.renderer = this.render.bind(this);
+            updateDOM(this.renderer);
+        }
+    }
+
+    /**
+     * Render the changes of the virtual
+     * DOM tree to the source DOM tree
+     *
+     * @api private
+     */
+    render() {
+        this.renderer = null;
+        patch(this.node, this.vnode);
+    }
+
+    /**
      * Called anytime a change is made to
      * the virtual DOM tree
      *
      * @api private
      */
     onChange() {
-        patch(this.node, this.vnode);
+        if (contains(document, this.getNode())) {
+            this.update();
+            return;
+        }
+        this.render();
     }
 }
 

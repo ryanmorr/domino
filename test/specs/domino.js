@@ -1,7 +1,17 @@
 /* eslint-disable max-len */
 
 import { expect } from 'chai';
+import sinon from 'sinon';
 import domino from '../../src/domino';
+
+// Polyfill `requestAnimationFrame` and 'cancelAnimationFrame'
+// for PhantomJS
+window.requestAnimationFrame = window.requestAnimationFrame
+    || window.webkitRequestAnimationFrame
+    || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
+
+window.cancelAnimationFrame = window.cancelAnimationFrame
+    || function cancelAnimationFrame(id) { window.clearTimeout(id); };
 
 // Parse HTML string into DOM node
 function parseHTML(html) {
@@ -12,11 +22,7 @@ function parseHTML(html) {
 
 // Schedule a frame to call a function
 function frame(fn) {
-    // const raf = window.requestAnimationFrame
-    //     || window.webkitRequestAnimationFrame
-    //     || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
-    // raf(fn);
-    setTimeout(fn, 500);
+    requestAnimationFrame(fn);
 }
 
 describe('domino', () => {
@@ -25,6 +31,25 @@ describe('domino', () => {
         expect(vnode.nodeName).to.equal('HTML');
         const vnode2 = domino(document);
         expect(vnode2.nodeName).to.equal('HTML');
+    });
+
+    it('should return the same instance if the same source node is used twice', () => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        expect(domino(source)).to.equal(vnode);
+        const vnode2 = domino();
+        expect(domino(document)).to.equal(vnode2);
+    });
+
+    it('should support destroying the instance', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        domino.destroy(vnode);
+        vnode.setAttribute('id', 'foo');
+        frame(() => {
+            expect(source.hasAttribute('id')).to.equal(false);
+            done();
+        });
     });
 
     it('should support adding attributes', (done) => {
@@ -202,22 +227,33 @@ describe('domino', () => {
         });
     });
 
-    it('should return the same instance if the same source node is used twice', () => {
+    it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
-        expect(domino(source)).to.equal(vnode);
-        const vnode2 = domino();
-        expect(domino(document)).to.equal(vnode2);
+        const spy = sinon.spy(window, 'requestAnimationFrame');
+        vnode.setAttribute('id', 'foo');
+        expect(spy.called).to.equal(false);
+        frame(() => {
+            expect(source.id).to.equal('foo');
+            spy.restore();
+            done();
+        });
     });
 
-    it('should support destroying the instance', (done) => {
+    it('should schedule a frame to update the source DOM node if it is rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
-        domino.destroy(vnode);
+        const spy = sinon.spy(window, 'requestAnimationFrame');
+        document.body.appendChild(source);
         vnode.setAttribute('id', 'foo');
         frame(() => {
-            expect(source.hasAttribute('id')).to.equal(false);
-            done();
+            expect(spy.called).to.equal(true);
+            frame(() => {
+                expect(source.id).to.equal('foo');
+                document.body.removeChild(source);
+                spy.restore();
+                done();
+            });
         });
     });
 });
