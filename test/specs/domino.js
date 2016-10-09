@@ -227,6 +227,20 @@ describe('domino', () => {
         });
     });
 
+    it('should support manipulation via innerHTML', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
+        frame(() => {
+            expect(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
+            vnode.innerHTML = '';
+            frame(() => {
+                expect(source.outerHTML).to.equal('<div></div>');
+                done();
+            });
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);

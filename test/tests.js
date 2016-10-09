@@ -16004,6 +16004,20 @@ describe('domino', function () {
         });
     });
 
+    it('should support manipulation via innerHTML', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
+        frame(function () {
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
+            vnode.innerHTML = '';
+            frame(function () {
+                (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
+                done();
+            });
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
