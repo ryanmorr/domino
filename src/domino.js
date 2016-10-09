@@ -2,11 +2,17 @@
  * Import dependencies
  */
 import patch from './patch';
+import { getNode, findIndex } from './util';
 
 /**
  * Cache of all `Domino` instances
  */
-const items = [];
+const dominos = [];
+
+/**
+ * Get the supported `MutationObserver`
+ */
+const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 /**
  * Virtual DOM class
@@ -26,10 +32,10 @@ class Domino {
      * @api public
      */
     constructor(node) {
-        this.dom = node.nodeType === 9 ? node.documentElement : node;
-        this.vdom = this.dom.cloneNode(true);
+        this.node = getNode(node);
+        this.vnode = this.node.cloneNode(true);
         this.observer = new MutationObserver(this.onChange.bind(this));
-        this.observer.observe(this.vdom, {
+        this.observer.observe(this.vnode, {
             childList: true,
             attributes: true,
             characterData: true,
@@ -44,8 +50,20 @@ class Domino {
      * @api public
      */
     destroy() {
-        this.observer.disconnect();
-        this.observer = this.dom = this.vdom = null;
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = this.node = this.vnode = null;
+        }
+    }
+
+    /**
+     * Get the source DOM node
+     *
+     * @return {Node}
+     * @api public
+     */
+    getNode() {
+        return this.node;
     }
 
     /**
@@ -54,8 +72,8 @@ class Domino {
      * @return {Node}
      * @api public
      */
-    getVirtualDOM() {
-        return this.vdom;
+    getVNode() {
+        return this.vnode;
     }
 
     /**
@@ -65,7 +83,7 @@ class Domino {
      * @api private
      */
     onChange() {
-        patch(this.dom, this.vdom);
+        patch(this.node, this.vnode);
     }
 }
 
@@ -78,26 +96,30 @@ class Domino {
  * @api public
  */
 function domino(node = document) {
+    node = getNode(node);
+    const index = findIndex(dominos, (dom) => dom.getNode() === node);
+    if (index !== -1) {
+        return dominos[index].getVNode();
+    }
     const dom = new Domino(node);
-    items.push(dom);
-    return dom.getVirtualDOM();
+    dominos.push(dom);
+    return dom.getVNode();
 }
 
 /**
  * Factory function for creating
  * `Domino` instances
  *
- * @param {Node} node (optional)
+ * @param {Node} node
  * @api public
  */
-domino.destroy = function destroy(node = document) {
-    items.forEach((item, i) => {
-        if (item.getVirtualDOM() === node) {
-            item.destroy();
-            items.splice(i, 1);
-            return;
-        }
-    });
+domino.destroy = function destroy(node) {
+    const index = findIndex(dominos, (dom) => dom.getVNode() === node);
+    if (index !== -1) {
+        const dom = dominos[index];
+        dom.destroy();
+        dominos.splice(index, 1);
+    }
 };
 
 /**

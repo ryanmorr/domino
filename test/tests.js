@@ -8160,6 +8160,8 @@ var _patch = require('./patch');
 
 var _patch2 = _interopRequireDefault(_patch);
 
+var _util = require('./util');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8167,7 +8169,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Cache of all `Domino` instances
  */
-var items = [];
+var dominos = [];
+
+/**
+ * Get the supported `MutationObserver`
+ */
+var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 /**
  * Virtual DOM class
@@ -8190,10 +8197,10 @@ var Domino = function () {
     function Domino(node) {
         _classCallCheck(this, Domino);
 
-        this.dom = node.nodeType === 9 ? node.documentElement : node;
-        this.vdom = this.dom.cloneNode(true);
+        this.node = (0, _util.getNode)(node);
+        this.vnode = this.node.cloneNode(true);
         this.observer = new MutationObserver(this.onChange.bind(this));
-        this.observer.observe(this.vdom, {
+        this.observer.observe(this.vnode, {
             childList: true,
             attributes: true,
             characterData: true,
@@ -8212,8 +8219,23 @@ var Domino = function () {
     _createClass(Domino, [{
         key: 'destroy',
         value: function destroy() {
-            this.observer.disconnect();
-            this.observer = this.dom = this.vdom = null;
+            if (this.observer) {
+                this.observer.disconnect();
+                this.observer = this.node = this.vnode = null;
+            }
+        }
+
+        /**
+         * Get the source DOM node
+         *
+         * @return {Node}
+         * @api public
+         */
+
+    }, {
+        key: 'getNode',
+        value: function getNode() {
+            return this.node;
         }
 
         /**
@@ -8224,9 +8246,9 @@ var Domino = function () {
          */
 
     }, {
-        key: 'getVirtualDOM',
-        value: function getVirtualDOM() {
-            return this.vdom;
+        key: 'getVNode',
+        value: function getVNode() {
+            return this.vnode;
         }
 
         /**
@@ -8239,7 +8261,7 @@ var Domino = function () {
     }, {
         key: 'onChange',
         value: function onChange() {
-            (0, _patch2.default)(this.dom, this.vdom);
+            (0, _patch2.default)(this.node, this.vnode);
         }
     }]);
 
@@ -8259,28 +8281,34 @@ var Domino = function () {
 function domino() {
     var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
 
+    node = (0, _util.getNode)(node);
+    var index = (0, _util.findIndex)(dominos, function (dom) {
+        return dom.getNode() === node;
+    });
+    if (index !== -1) {
+        return dominos[index].getVNode();
+    }
     var dom = new Domino(node);
-    items.push(dom);
-    return dom.getVirtualDOM();
+    dominos.push(dom);
+    return dom.getVNode();
 }
 
 /**
  * Factory function for creating
  * `Domino` instances
  *
- * @param {Node} node (optional)
+ * @param {Node} node
  * @api public
  */
-domino.destroy = function destroy() {
-    var node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
-
-    items.forEach(function (item, i) {
-        if (item.getVirtualDOM() === node) {
-            item.destroy();
-            items.splice(i, 1);
-            return;
-        }
+domino.destroy = function destroy(node) {
+    var index = (0, _util.findIndex)(dominos, function (dom) {
+        return dom.getVNode() === node;
     });
+    if (index !== -1) {
+        var dom = dominos[index];
+        dom.destroy();
+        dominos.splice(index, 1);
+    }
 };
 
 /**
@@ -8289,7 +8317,7 @@ domino.destroy = function destroy() {
 exports.default = domino;
 module.exports = exports['default'];
 
-},{"./patch":42}],42:[function(require,module,exports){
+},{"./patch":42,"./util":43}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8301,27 +8329,22 @@ exports.default = patch;
  * the virtual node
  *
  * @param {Node} node
- * @param {String} name
- * @return {String|Undefined}
- * @api private
- */
-function getAttribute(node, name) {
-    var value = name in node ? node[name] : node.getAttribute(name);
-    return value == null ? null : value;
-}
-
-/**
- * Patch a source node to match
- * the virtual node
- *
- * @param {Node} node
  * @param {Node} vnode
  * @api private
  */
 function patch(node, vnode) {
-    if (vnode.hasChildNodes()) {
+    if (node.nodeType !== vnode.nodeType || node.nodeName !== vnode.nodeName) {
+        node.parentNode.replaceChild(vnode.cloneNode(true), node);
+    } else if (vnode.nodeType === 3) {
+        var data = vnode.data;
+        if (node.data !== vnode.data) {
+            node.data = data;
+        }
+    } else {
         var vnodeChildNodes = vnode.childNodes;
         var nodeChildNodes = node.childNodes;
+        var vnodeAttrs = vnode.attributes;
+        var nodeAttrs = node.attributes;
         for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
             patch(nodeChildNodes[i], vnodeChildNodes[i]);
         }
@@ -8329,19 +8352,16 @@ function patch(node, vnode) {
             for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
                 node.removeChild(nodeChildNodes[_i]);
             }
-        }
-        if (nodeChildNodes.length < vnodeChildNodes.length) {
+        } else if (nodeChildNodes.length < vnodeChildNodes.length) {
+            var frag = document.createDocumentFragment();
             for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
-                node.appendChild(vnodeChildNodes[_i2].cloneNode(true));
+                frag.appendChild(vnodeChildNodes[_i2].cloneNode(true));
             }
+            node.appendChild(frag);
         }
-    }
-    if (vnode.hasAttributes()) {
-        var vnodeAttrs = vnode.attributes;
-        var nodeAttrs = node.attributes;
         for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
             var name = nodeAttrs[_i3].name;
-            if (getAttribute(vnode, name) === null) {
+            if (!vnode.hasAttribute(name)) {
                 node.removeAttribute(name);
             }
         }
@@ -8349,7 +8369,7 @@ function patch(node, vnode) {
             var attr = vnodeAttrs[_i4];
             var _name = attr.name;
             var value = attr.value;
-            if (getAttribute(node, _name) !== value) {
+            if (node.getAttribute(_name) !== value) {
                 node.setAttribute(_name, value);
             }
         }
@@ -8358,6 +8378,48 @@ function patch(node, vnode) {
 module.exports = exports["default"];
 
 },{}],43:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.getNode = getNode;
+exports.findIndex = findIndex;
+/**
+ * Resolve a DOM node to return
+ * an element node
+ *
+ * @param {Node} node
+ * @return {Node}
+ * @api private
+ */
+function getNode(node) {
+    return node.nodeType === 9 ? node.documentElement : node;
+}
+
+/**
+ * Search an array for the first item
+ * that satisfies a given condition and
+ * return its index
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @return {Number}
+ * @api public
+ */
+function findIndex(arr, fn) {
+    if ('findIndex' in arr) {
+        return arr.findIndex(fn);
+    }
+    for (var i = 0, len = arr.length; i < len; i++) {
+        if (fn.call(arr[i], arr[i], i, arr)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+},{}],44:[function(require,module,exports){
 'use strict';
 
 var _chai = require('chai');
@@ -8378,91 +8440,215 @@ function parseHTML(html) {
 }
 
 // Schedule a frame to call a function
-function asap() {
-    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || function requestAnimationFrame(cb) {
-        return window.setTimeout(cb, 1000 / 60);
-    };
+function frame(fn) {
+    // const raf = window.requestAnimationFrame
+    //     || window.webkitRequestAnimationFrame
+    //     || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
+    // raf(fn);
+    setTimeout(fn, 500);
 }
 
 describe('domino', function () {
-    it('should support adding attributes', function () {
+    it('should use the document element by default', function () {
+        var vnode = (0, _domino2.default)();
+        (0, _chai.expect)(vnode.nodeName).to.equal('HTML');
+        var vnode2 = (0, _domino2.default)(document);
+        (0, _chai.expect)(vnode2.nodeName).to.equal('HTML');
+    });
+
+    it('should support adding attributes', function (done) {
         var source = parseHTML('<div></div>');
-        var node = (0, _domino2.default)(source);
-        node.setAttribute('id', 'foo');
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        vnode.setAttribute('id', 'foo');
+        frame(function () {
             (0, _chai.expect)(source.id).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div id="foo"></div>');
+            done();
         });
     });
 
-    it('should support removing attributes', function () {
+    it('should support adding deeply nested attributes', function (done) {
+        var source = parseHTML('<section><div><span></span></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.querySelector('span').setAttribute('id', 'foo');
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('span').id).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span id="foo"></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing attributes', function (done) {
         var source = parseHTML('<div id="foo"></div>');
-        var node = (0, _domino2.default)(source);
-        node.removeAttribute('id');
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        vnode.removeAttribute('id');
+        frame(function () {
             (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
+            (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support adding elements', function () {
+    it('should support removing deeply nested attributes', function (done) {
+        var source = parseHTML('<section><div><span id="foo"></span></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.querySelector('span').removeAttribute('id');
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('span').hasAttribute('id')).to.equal(false);
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support adding elements', function (done) {
         var source = parseHTML('<div></div>');
-        var node = (0, _domino2.default)(source);
-        node.appendChild(document.createElement('span'));
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        vnode.appendChild(document.createElement('span'));
+        frame(function () {
             (0, _chai.expect)(source.firstChild.nodeName).to.equal('SPAN');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><span></span></div>');
+            done();
         });
     });
 
-    it('should support removing elements', function () {
+    it('should support adding deeply nested elements', function (done) {
+        var source = parseHTML('<section><div></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.querySelector('div').appendChild(document.createElement('span'));
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('div').firstChild.nodeName).to.equal('SPAN');
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing elements', function (done) {
         var source = parseHTML('<div><span></span></div>');
-        var node = (0, _domino2.default)(source);
-        node.removeChild(node.firstChild);
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        vnode.removeChild(vnode.firstChild);
+        frame(function () {
             (0, _chai.expect)(source.firstChild).to.equal(null);
+            (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support adding text nodes', function () {
+    it('should support removing deeply nested elements', function (done) {
+        var source = parseHTML('<section><div><span></span></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        var vdiv = vnode.querySelector('div');
+        vdiv.removeChild(vdiv.firstChild);
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('div').firstChild).to.equal(null);
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div></div></section>');
+            done();
+        });
+    });
+
+    it('should support adding text nodes', function (done) {
         var source = parseHTML('<div></div>');
-        var node = (0, _domino2.default)(source);
+        var vnode = (0, _domino2.default)(source);
         var text = document.createTextNode('foo');
-        node.appendChild(text);
-        asap(function () {
+        vnode.appendChild(text);
+        frame(function () {
             (0, _chai.expect)(source.textContent).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div>foo</div>');
+            done();
         });
     });
 
-    it('should support removing text nodes', function () {
+    it('should support adding deeply nested text nodes', function (done) {
+        var source = parseHTML('<section><div><span></span></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        var text = document.createTextNode('foo');
+        vnode.querySelector('span').appendChild(text);
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('span').textContent).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing text nodes', function (done) {
         var source = parseHTML('<div>foo</div>');
-        var node = (0, _domino2.default)(source);
-        node.removeChild(node.firstChild);
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        vnode.removeChild(vnode.firstChild);
+        frame(function () {
             (0, _chai.expect)(source.textContent).to.equal('');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support changing text node data', function () {
-        var source = parseHTML('<div></div>');
-        var node = (0, _domino2.default)(source);
+    it('should support removing deeply nested text nodes', function (done) {
+        var source = parseHTML('<section><div><span>foo</span></div></section>');
+        var vnode = (0, _domino2.default)(source);
+        var vspan = vnode.querySelector('span');
+        vspan.removeChild(vspan.firstChild);
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('span').textContent).to.equal('');
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support changing deeply nested text node data', function (done) {
+        var source = parseHTML('<section><div><span></span></div></section>');
+        var vnode = (0, _domino2.default)(source);
         var text = document.createTextNode('foo');
-        node.appendChild(text);
-        asap(function () {
-            (0, _chai.expect)(source.textContent).to.equal('foo');
+        vnode.querySelector('span').appendChild(text);
+        frame(function () {
+            (0, _chai.expect)(source.querySelector('span').textContent).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
             text.data = 'bar';
-            asap(function () {
-                (0, _chai.expect)(source.textContent).to.equal('bar');
+            frame(function () {
+                (0, _chai.expect)(source.querySelector('span').textContent).to.equal('bar');
+                (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>bar</span></div></section>');
+                done();
             });
         });
     });
 
-    it('should support destroying the instance', function () {
+    it('should support changing the element type of nested nodes', function (done) {
+        var source = parseHTML('<div><span></span></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.replaceChild(document.createElement('em'), vnode.firstChild);
+        frame(function () {
+            (0, _chai.expect)(source.firstChild.nodeName).to.equal('EM');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><em></em></div>');
+            done();
+        });
+    });
+
+    it('should support changing the node type of nested nodes', function (done) {
+        var source = parseHTML('<div><span></span></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.replaceChild(document.createTextNode('foo'), vnode.firstChild);
+        frame(function () {
+            (0, _chai.expect)(source.firstChild.nodeValue).to.equal('foo');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div>foo</div>');
+            done();
+        });
+    });
+
+    it('should return the same instance if the same source node is used twice', function () {
         var source = parseHTML('<div></div>');
-        var node = (0, _domino2.default)(source);
-        _domino2.default.destroy(node);
-        node.setAttribute('id', 'foo');
-        asap(function () {
+        var vnode = (0, _domino2.default)(source);
+        (0, _chai.expect)((0, _domino2.default)(source)).to.equal(vnode);
+        var vnode2 = (0, _domino2.default)();
+        (0, _chai.expect)((0, _domino2.default)(document)).to.equal(vnode2);
+    });
+
+    it('should support destroying the instance', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        _domino2.default.destroy(vnode);
+        vnode.setAttribute('id', 'foo');
+        frame(function () {
             (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
+            done();
         });
     });
 });
 
-},{"../../src/domino":41,"chai":5}]},{},[43]);
+},{"../../src/domino":41,"chai":5}]},{},[44]);

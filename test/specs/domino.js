@@ -11,89 +11,213 @@ function parseHTML(html) {
 }
 
 // Schedule a frame to call a function
-function asap() {
-    return window.requestAnimationFrame
-        || window.webkitRequestAnimationFrame
-        || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
+function frame(fn) {
+    // const raf = window.requestAnimationFrame
+    //     || window.webkitRequestAnimationFrame
+    //     || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
+    // raf(fn);
+    setTimeout(fn, 500);
 }
 
 describe('domino', () => {
-    it('should support adding attributes', () => {
+    it('should use the document element by default', () => {
+        const vnode = domino();
+        expect(vnode.nodeName).to.equal('HTML');
+        const vnode2 = domino(document);
+        expect(vnode2.nodeName).to.equal('HTML');
+    });
+
+    it('should support adding attributes', (done) => {
         const source = parseHTML('<div></div>');
-        const node = domino(source);
-        node.setAttribute('id', 'foo');
-        asap(() => {
+        const vnode = domino(source);
+        vnode.setAttribute('id', 'foo');
+        frame(() => {
             expect(source.id).to.equal('foo');
+            expect(source.outerHTML).to.equal('<div id="foo"></div>');
+            done();
         });
     });
 
-    it('should support removing attributes', () => {
+    it('should support adding deeply nested attributes', (done) => {
+        const source = parseHTML('<section><div><span></span></div></section>');
+        const vnode = domino(source);
+        vnode.querySelector('span').setAttribute('id', 'foo');
+        frame(() => {
+            expect(source.querySelector('span').id).to.equal('foo');
+            expect(source.outerHTML).to.equal('<section><div><span id="foo"></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing attributes', (done) => {
         const source = parseHTML('<div id="foo"></div>');
-        const node = domino(source);
-        node.removeAttribute('id');
-        asap(() => {
+        const vnode = domino(source);
+        vnode.removeAttribute('id');
+        frame(() => {
             expect(source.hasAttribute('id')).to.equal(false);
+            expect(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support adding elements', () => {
+    it('should support removing deeply nested attributes', (done) => {
+        const source = parseHTML('<section><div><span id="foo"></span></div></section>');
+        const vnode = domino(source);
+        vnode.querySelector('span').removeAttribute('id');
+        frame(() => {
+            expect(source.querySelector('span').hasAttribute('id')).to.equal(false);
+            expect(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support adding elements', (done) => {
         const source = parseHTML('<div></div>');
-        const node = domino(source);
-        node.appendChild(document.createElement('span'));
-        asap(() => {
+        const vnode = domino(source);
+        vnode.appendChild(document.createElement('span'));
+        frame(() => {
             expect(source.firstChild.nodeName).to.equal('SPAN');
+            expect(source.outerHTML).to.equal('<div><span></span></div>');
+            done();
         });
     });
 
-    it('should support removing elements', () => {
+    it('should support adding deeply nested elements', (done) => {
+        const source = parseHTML('<section><div></div></section>');
+        const vnode = domino(source);
+        vnode.querySelector('div').appendChild(document.createElement('span'));
+        frame(() => {
+            expect(source.querySelector('div').firstChild.nodeName).to.equal('SPAN');
+            expect(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing elements', (done) => {
         const source = parseHTML('<div><span></span></div>');
-        const node = domino(source);
-        node.removeChild(node.firstChild);
-        asap(() => {
+        const vnode = domino(source);
+        vnode.removeChild(vnode.firstChild);
+        frame(() => {
             expect(source.firstChild).to.equal(null);
+            expect(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support adding text nodes', () => {
+    it('should support removing deeply nested elements', (done) => {
+        const source = parseHTML('<section><div><span></span></div></section>');
+        const vnode = domino(source);
+        const vdiv = vnode.querySelector('div');
+        vdiv.removeChild(vdiv.firstChild);
+        frame(() => {
+            expect(source.querySelector('div').firstChild).to.equal(null);
+            expect(source.outerHTML).to.equal('<section><div></div></section>');
+            done();
+        });
+    });
+
+    it('should support adding text nodes', (done) => {
         const source = parseHTML('<div></div>');
-        const node = domino(source);
+        const vnode = domino(source);
         const text = document.createTextNode('foo');
-        node.appendChild(text);
-        asap(() => {
+        vnode.appendChild(text);
+        frame(() => {
             expect(source.textContent).to.equal('foo');
+            expect(source.outerHTML).to.equal('<div>foo</div>');
+            done();
         });
     });
 
-    it('should support removing text nodes', () => {
+    it('should support adding deeply nested text nodes', (done) => {
+        const source = parseHTML('<section><div><span></span></div></section>');
+        const vnode = domino(source);
+        const text = document.createTextNode('foo');
+        vnode.querySelector('span').appendChild(text);
+        frame(() => {
+            expect(source.querySelector('span').textContent).to.equal('foo');
+            expect(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
+            done();
+        });
+    });
+
+    it('should support removing text nodes', (done) => {
         const source = parseHTML('<div>foo</div>');
-        const node = domino(source);
-        node.removeChild(node.firstChild);
-        asap(() => {
+        const vnode = domino(source);
+        vnode.removeChild(vnode.firstChild);
+        frame(() => {
             expect(source.textContent).to.equal('');
+            expect(source.outerHTML).to.equal('<div></div>');
+            done();
         });
     });
 
-    it('should support changing text node data', () => {
-        const source = parseHTML('<div></div>');
-        const node = domino(source);
+    it('should support removing deeply nested text nodes', (done) => {
+        const source = parseHTML('<section><div><span>foo</span></div></section>');
+        const vnode = domino(source);
+        const vspan = vnode.querySelector('span');
+        vspan.removeChild(vspan.firstChild);
+        frame(() => {
+            expect(source.querySelector('span').textContent).to.equal('');
+            expect(source.outerHTML).to.equal('<section><div><span></span></div></section>');
+            done();
+        });
+    });
+
+    it('should support changing deeply nested text node data', (done) => {
+        const source = parseHTML('<section><div><span></span></div></section>');
+        const vnode = domino(source);
         const text = document.createTextNode('foo');
-        node.appendChild(text);
-        asap(() => {
-            expect(source.textContent).to.equal('foo');
+        vnode.querySelector('span').appendChild(text);
+        frame(() => {
+            expect(source.querySelector('span').textContent).to.equal('foo');
+            expect(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
             text.data = 'bar';
-            asap(() => {
-                expect(source.textContent).to.equal('bar');
+            frame(() => {
+                expect(source.querySelector('span').textContent).to.equal('bar');
+                expect(source.outerHTML).to.equal('<section><div><span>bar</span></div></section>');
+                done();
             });
         });
     });
 
-    it('should support destroying the instance', () => {
+    it('should support changing the element type of nested nodes', (done) => {
+        const source = parseHTML('<div><span></span></div>');
+        const vnode = domino(source);
+        vnode.replaceChild(document.createElement('em'), vnode.firstChild);
+        frame(() => {
+            expect(source.firstChild.nodeName).to.equal('EM');
+            expect(source.outerHTML).to.equal('<div><em></em></div>');
+            done();
+        });
+    });
+
+    it('should support changing the node type of nested nodes', (done) => {
+        const source = parseHTML('<div><span></span></div>');
+        const vnode = domino(source);
+        vnode.replaceChild(document.createTextNode('foo'), vnode.firstChild);
+        frame(() => {
+            expect(source.firstChild.nodeValue).to.equal('foo');
+            expect(source.outerHTML).to.equal('<div>foo</div>');
+            done();
+        });
+    });
+
+    it('should return the same instance if the same source node is used twice', () => {
         const source = parseHTML('<div></div>');
-        const node = domino(source);
-        domino.destroy(node);
-        node.setAttribute('id', 'foo');
-        asap(() => {
+        const vnode = domino(source);
+        expect(domino(source)).to.equal(vnode);
+        const vnode2 = domino();
+        expect(domino(document)).to.equal(vnode2);
+    });
+
+    it('should support destroying the instance', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        domino.destroy(vnode);
+        vnode.setAttribute('id', 'foo');
+        frame(() => {
             expect(source.hasAttribute('id')).to.equal(false);
+            done();
         });
     });
 });

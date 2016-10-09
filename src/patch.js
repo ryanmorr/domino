@@ -3,27 +3,22 @@
  * the virtual node
  *
  * @param {Node} node
- * @param {String} name
- * @return {String|Null}
- * @api private
- */
-function getAttribute(node, name) {
-    const value = name in node ? node[name] : node.getAttribute(name);
-    return value == null ? null : value;
-}
-
-/**
- * Patch a source node to match
- * the virtual node
- *
- * @param {Node} node
  * @param {Node} vnode
  * @api private
  */
 export default function patch(node, vnode) {
-    if (vnode.hasChildNodes()) {
+    if (node.nodeType !== vnode.nodeType || node.nodeName !== vnode.nodeName) {
+        node.parentNode.replaceChild(vnode.cloneNode(true), node);
+    } else if (vnode.nodeType === 3) {
+        const data = vnode.data;
+        if (node.data !== vnode.data) {
+            node.data = data;
+        }
+    } else {
         const vnodeChildNodes = vnode.childNodes;
         const nodeChildNodes = node.childNodes;
+        const vnodeAttrs = vnode.attributes;
+        const nodeAttrs = node.attributes;
         for (let i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
             patch(nodeChildNodes[i], vnodeChildNodes[i]);
         }
@@ -31,19 +26,16 @@ export default function patch(node, vnode) {
             for (let i = nodeChildNodes.length - 1; i >= vnodeChildNodes.length; i--) {
                 node.removeChild(nodeChildNodes[i]);
             }
-        }
-        if (nodeChildNodes.length < vnodeChildNodes.length) {
+        } else if (nodeChildNodes.length < vnodeChildNodes.length) {
+            const frag = document.createDocumentFragment();
             for (let i = nodeChildNodes.length; i < vnodeChildNodes.length; i++) {
-                node.appendChild(vnodeChildNodes[i].cloneNode(true));
+                frag.appendChild(vnodeChildNodes[i].cloneNode(true));
             }
+            node.appendChild(frag);
         }
-    }
-    if (vnode.hasAttributes()) {
-        const vnodeAttrs = vnode.attributes;
-        const nodeAttrs = node.attributes;
         for (let i = nodeAttrs.length - 1; i >= 0; i--) {
             const name = nodeAttrs[i].name;
-            if (getAttribute(vnode, name) === null) {
+            if (!vnode.hasAttribute(name)) {
                 node.removeAttribute(name);
             }
         }
@@ -51,7 +43,7 @@ export default function patch(node, vnode) {
             const attr = vnodeAttrs[i];
             const name = attr.name;
             const value = attr.value;
-            if (getAttribute(node, name) !== value) {
+            if (node.getAttribute(name) !== value) {
                 node.setAttribute(name, value);
             }
         }
