@@ -15,6 +15,16 @@ const dominos = [];
 const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 /**
+ * MutationObserver options
+ */
+const observerOptions = {
+    childList: true,
+    attributes: true,
+    characterData: true,
+    subtree: true
+};
+
+/**
  * Virtual DOM class
  *
  * @class Domino
@@ -35,12 +45,7 @@ class Domino {
         this.node = getNode(node);
         this.vnode = this.node.cloneNode(true);
         this.observer = new MutationObserver(this.onChange.bind(this));
-        this.observer.observe(this.vnode, {
-            childList: true,
-            attributes: true,
-            characterData: true,
-            subtree: true
-        });
+        this.observer.observe(this.vnode, observerOptions);
     }
 
     /**
