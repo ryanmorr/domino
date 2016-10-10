@@ -26302,6 +26302,20 @@ describe('domino', function () {
         });
     });
 
+    it('should support reading attributes and properties from the virtual node', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.setAttribute('id', 'foo');
+        vnode.className = 'foo bar baz';
+        vnode.style.color = 'red';
+        frame(function () {
+            (0, _chai.expect)(source.id).to.equal(vnode.id);
+            (0, _chai.expect)(source.className).to.equal(vnode.className);
+            (0, _chai.expect)(source.style.cssText).to.equal(vnode.style.cssText);
+            done();
+        });
+    });
+
     it('should support the custom patch event', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);

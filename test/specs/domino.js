@@ -257,6 +257,20 @@ describe('domino', () => {
         });
     });
 
+    it('should support reading attributes and properties from the virtual node', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        vnode.setAttribute('id', 'foo');
+        vnode.className = 'foo bar baz';
+        vnode.style.color = 'red';
+        frame(() => {
+            expect(source.id).to.equal(vnode.id);
+            expect(source.className).to.equal(vnode.className);
+            expect(source.style.cssText).to.equal(vnode.style.cssText);
+            done();
+        });
+    });
+
     it('should support the custom patch event', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
