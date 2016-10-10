@@ -5,6 +5,19 @@ let frame;
 const batch = [];
 
 /**
+ * Feature test support for creating
+ * event via Event constructors
+ */
+const supportsEventConstructors = (() => {
+    try {
+        new CustomEvent('foo'); // eslint-disable-line no-new
+        return true;
+    } catch (e) {
+        return false;
+    }
+})();
+
+/**
  * Resolve a DOM node to return
  * an element node
  *
@@ -74,4 +87,21 @@ export function updateDOM(fn) {
             render();
         }
     });
+}
+
+/**
+ * Create a custom event to dispatch
+ * on an element
+ *
+ * @param {String} type
+ * @return {Event}
+ * @api private
+ */
+export function createEvent(type) {
+    if (supportsEventConstructors) {
+        return new CustomEvent(type, {bubbles: false, cancelable: false});
+    }
+    const evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(type, false, false, null);
+    return evt;
 }

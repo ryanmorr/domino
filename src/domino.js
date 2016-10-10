@@ -2,7 +2,7 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex, contains, updateDOM } from './util';
+import { getNode, findIndex, contains, updateDOM, createEvent } from './util';
 
 /**
  * Cache of all `Domino` instances
@@ -28,7 +28,7 @@ const observerOptions = {
  * Virtual DOM class
  *
  * @class Domino
- * @api public
+ * @api private
  */
 class Domino {
 
@@ -39,7 +39,7 @@ class Domino {
      *
      * @constructor
      * @param {Node} node
-     * @api public
+     * @api private
      */
     constructor(node) {
         this.node = getNode(node);
@@ -52,7 +52,7 @@ class Domino {
      * Disconnect the mutation observer
      * and nullify the properties
      *
-     * @api public
+     * @api private
      */
     destroy() {
         if (this.observer) {
@@ -65,7 +65,7 @@ class Domino {
      * Get the source DOM node
      *
      * @return {Node}
-     * @api public
+     * @api private
      */
     getNode() {
         return this.node;
@@ -75,7 +75,7 @@ class Domino {
      * Get the virtual DOM node
      *
      * @return {Node}
-     * @api public
+     * @api private
      */
     getVNode() {
         return this.vnode;
@@ -103,6 +103,7 @@ class Domino {
     render() {
         this.renderer = null;
         patch(this.node, this.vnode);
+        this.getNode().dispatchEvent(createEvent('patch'));
     }
 
     /**
@@ -140,8 +141,7 @@ function domino(node = document) {
 }
 
 /**
- * Factory function for creating
- * `Domino` instances
+ * Stop future updates
  *
  * @param {Node} node
  * @api public

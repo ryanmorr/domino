@@ -11,14 +11,14 @@ export default function patch(node, vnode) {
         node.parentNode.replaceChild(vnode.cloneNode(true), node);
     } else if (vnode.nodeType === 3) {
         const data = vnode.data;
-        if (node.data !== vnode.data) {
+        if (node.data !== data) {
             node.data = data;
         }
     } else {
-        const vnodeChildNodes = vnode.childNodes;
+        const nodeAttrs = node.attributes;
         const nodeChildNodes = node.childNodes;
         const vnodeAttrs = vnode.attributes;
-        const nodeAttrs = node.attributes;
+        const vnodeChildNodes = vnode.childNodes;
         for (let i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
             patch(nodeChildNodes[i], vnodeChildNodes[i]);
         }

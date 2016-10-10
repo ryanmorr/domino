@@ -15456,7 +15456,7 @@ var observerOptions = {
  * Virtual DOM class
  *
  * @class Domino
- * @api public
+ * @api private
  */
 
 var Domino = function () {
@@ -15468,7 +15468,7 @@ var Domino = function () {
      *
      * @constructor
      * @param {Node} node
-     * @api public
+     * @api private
      */
     function Domino(node) {
         _classCallCheck(this, Domino);
@@ -15483,7 +15483,7 @@ var Domino = function () {
      * Disconnect the mutation observer
      * and nullify the properties
      *
-     * @api public
+     * @api private
      */
 
 
@@ -15500,7 +15500,7 @@ var Domino = function () {
          * Get the source DOM node
          *
          * @return {Node}
-         * @api public
+         * @api private
          */
 
     }, {
@@ -15513,7 +15513,7 @@ var Domino = function () {
          * Get the virtual DOM node
          *
          * @return {Node}
-         * @api public
+         * @api private
          */
 
     }, {
@@ -15550,6 +15550,7 @@ var Domino = function () {
         value: function render() {
             this.renderer = null;
             (0, _patch2.default)(this.node, this.vnode);
+            this.getNode().dispatchEvent((0, _util.createEvent)('patch'));
         }
 
         /**
@@ -15599,8 +15600,7 @@ function domino() {
 }
 
 /**
- * Factory function for creating
- * `Domino` instances
+ * Stop future updates
  *
  * @param {Node} node
  * @api public
@@ -15642,14 +15642,14 @@ function patch(node, vnode) {
         node.parentNode.replaceChild(vnode.cloneNode(true), node);
     } else if (vnode.nodeType === 3) {
         var data = vnode.data;
-        if (node.data !== vnode.data) {
+        if (node.data !== data) {
             node.data = data;
         }
     } else {
-        var vnodeChildNodes = vnode.childNodes;
+        var nodeAttrs = node.attributes;
         var nodeChildNodes = node.childNodes;
         var vnodeAttrs = vnode.attributes;
-        var nodeAttrs = node.attributes;
+        var vnodeChildNodes = vnode.childNodes;
         for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
             patch(nodeChildNodes[i], vnodeChildNodes[i]);
         }
@@ -15692,11 +15692,25 @@ exports.getNode = getNode;
 exports.findIndex = findIndex;
 exports.contains = contains;
 exports.updateDOM = updateDOM;
+exports.createEvent = createEvent;
 /**
  * Common variables
  */
 var frame = void 0;
 var batch = [];
+
+/**
+ * Feature test support for creating
+ * event via Event constructors
+ */
+var supportsEventConstructors = function () {
+    try {
+        new CustomEvent('foo'); // eslint-disable-line no-new
+        return true;
+    } catch (e) {
+        return false;
+    }
+}();
 
 /**
  * Resolve a DOM node to return
@@ -15768,6 +15782,23 @@ function updateDOM(fn) {
             render();
         }
     });
+}
+
+/**
+ * Create a custom event to dispatch
+ * on an element
+ *
+ * @param {String} type
+ * @return {Event}
+ * @api private
+ */
+function createEvent(type) {
+    if (supportsEventConstructors) {
+        return new CustomEvent(type, { bubbles: false, cancelable: false });
+    }
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(type, false, false, null);
+    return evt;
 }
 
 },{}],76:[function(require,module,exports){
@@ -16031,6 +16062,18 @@ describe('domino', function () {
             (0, _chai.expect)(source.firstChild.nodeValue).to.equal('©');
             done();
         });
+    });
+
+    it('should support the custom patch event', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        source.addEventListener('patch', function (e) {
+            (0, _chai.expect)(e.type).to.equal('patch');
+            (0, _chai.expect)(e.target).to.equal(source);
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><span></span></div>');
+            done();
+        });
+        vnode.innerHTML = '<span></span>';
     });
 
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {

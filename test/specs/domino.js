@@ -251,6 +251,18 @@ describe('domino', () => {
         });
     });
 
+    it('should support the custom patch event', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        source.addEventListener('patch', (e) => {
+            expect(e.type).to.equal('patch');
+            expect(e.target).to.equal(source);
+            expect(source.outerHTML).to.equal('<div><span></span></div>');
+            done();
+        });
+        vnode.innerHTML = '<span></span>';
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
