@@ -26281,13 +26281,31 @@ describe('domino', function () {
     it('should support manipulation via innerHTML', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
-        vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
+        vnode.innerHTML = '<section><span class="bar"></span></section>';
         frame(function () {
-            (0, _chai.expect)(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><section><span class="bar"></span></section></div>');
             vnode.innerHTML = '';
             frame(function () {
                 (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
                 done();
+            });
+        });
+    });
+
+    it('should support complex changes', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
+        frame(function () {
+            (0, _chai.expect)(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
+            vnode.innerHTML = '<section id="foo"><ul><li>1</li><li foo="bar">2</li><li>3</li><li>4</li></ul></section><i>baz</i><span class="a b c"></span><em></em>';
+            frame(function () {
+                (0, _chai.expect)(source.outerHTML).to.equal('<div><section id="foo"><ul><li>1</li><li foo="bar">2</li><li>3</li><li>4</li></ul></section><i>baz</i><span class="a b c"></span><em></em></div>');
+                vnode.innerHTML = '<section id="bar"><ul><li>1</li><li>2</li></ul></section><span class="a c"></span><em>quz</em>';
+                frame(function () {
+                    (0, _chai.expect)(source.outerHTML).to.equal('<div><section id="bar"><ul><li>1</li><li>2</li></ul></section><span class="a c"></span><em>quz</em></div>');
+                    done();
+                });
             });
         });
     });
