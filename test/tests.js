@@ -15640,43 +15640,45 @@ exports.default = patch;
 function patch(node, vnode) {
     if (node.nodeType !== vnode.nodeType || node.nodeName !== vnode.nodeName) {
         node.parentNode.replaceChild(vnode.cloneNode(true), node);
-    } else if (vnode.nodeType === 3) {
+        return;
+    }
+    if (vnode.nodeType === 3) {
         var data = vnode.data;
         if (node.data !== data) {
             node.data = data;
         }
-    } else {
-        var nodeAttrs = node.attributes;
-        var nodeChildNodes = node.childNodes;
-        var vnodeAttrs = vnode.attributes;
-        var vnodeChildNodes = vnode.childNodes;
-        for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
-            patch(nodeChildNodes[i], vnodeChildNodes[i]);
+        return;
+    }
+    var nodeAttrs = node.attributes;
+    var nodeChildNodes = node.childNodes;
+    var vnodeAttrs = vnode.attributes;
+    var vnodeChildNodes = vnode.childNodes;
+    for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
+        patch(nodeChildNodes[i], vnodeChildNodes[i]);
+    }
+    if (nodeChildNodes.length > vnodeChildNodes.length) {
+        for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
+            node.removeChild(nodeChildNodes[_i]);
         }
-        if (nodeChildNodes.length > vnodeChildNodes.length) {
-            for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
-                node.removeChild(nodeChildNodes[_i]);
-            }
-        } else if (nodeChildNodes.length < vnodeChildNodes.length) {
-            var frag = document.createDocumentFragment();
-            for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
-                frag.appendChild(vnodeChildNodes[_i2].cloneNode(true));
-            }
-            node.appendChild(frag);
+    } else if (nodeChildNodes.length < vnodeChildNodes.length) {
+        var frag = document.createDocumentFragment();
+        for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
+            frag.appendChild(vnodeChildNodes[_i2].cloneNode(true));
         }
-        for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
-            var name = nodeAttrs[_i3].name;
-            if (!vnode.hasAttribute(name)) {
-                node.removeAttribute(name);
-            }
+        node.appendChild(frag);
+    }
+    for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
+        var name = nodeAttrs[_i3].name;
+        if (!vnode.hasAttribute(name)) {
+            node.removeAttribute(name);
         }
-        for (var _i4 = vnodeAttrs.length - 1; _i4 >= 0; _i4--) {
-            var attr = vnodeAttrs[_i4];
-            var _name = attr.name;
-            var value = attr.value;
-            if (node.getAttribute(_name) !== value) {
-                node.setAttribute(_name, value);
-            }
+    }
+    for (var _i4 = vnodeAttrs.length - 1; _i4 >= 0; _i4--) {
+        var attr = vnodeAttrs[_i4];
+        var _name = attr.name;
+        var value = attr.value;
+        if (node.getAttribute(_name) !== value) {
+            node.setAttribute(_name, value);
         }
     }
 }
