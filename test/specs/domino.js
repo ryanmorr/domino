@@ -2,6 +2,7 @@
 
 import { expect } from 'chai';
 import sinon from 'sinon';
+import $ from 'jquery';
 import domino from '../../src/domino';
 
 // Polyfill `requestAnimationFrame` and 'cancelAnimationFrame'
@@ -22,7 +23,7 @@ function parseHTML(html) {
 
 // Schedule a frame to call a function
 function frame(fn) {
-    requestAnimationFrame(fn);
+    setTimeout(fn, 500);
 }
 
 describe('domino', () => {
@@ -274,6 +275,23 @@ describe('domino', () => {
         vnode.style.width = '10px';
         frame(() => {
             expect(source.style.width).to.equal('10px');
+            done();
+        });
+    });
+
+    it('should support manipulation via jQuery', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        $(vnode)
+            .attr('id', 'foo')
+            .addClass('bar')
+            .css({width: '20px', height: '20px'})
+            .append('<span class="baz"></span>');
+        frame(() => {
+            expect(source.id).to.equal('foo');
+            expect(source.className).to.equal('bar');
+            expect(source.style.cssText).to.equal('width: 20px; height: 20px;');
+            expect(source.innerHTML).to.equal('<span class="baz"></span>');
             done();
         });
     });
