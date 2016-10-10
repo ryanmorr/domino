@@ -25871,36 +25871,38 @@ function patch(node, vnode) {
         }
         return;
     }
-    var nodeAttrs = node.attributes;
     var nodeChildNodes = node.childNodes;
-    var vnodeAttrs = vnode.attributes;
     var vnodeChildNodes = vnode.childNodes;
     for (var i = Math.min(nodeChildNodes.length, vnodeChildNodes.length) - 1; i >= 0; i--) {
         patch(nodeChildNodes[i], vnodeChildNodes[i]);
     }
-    if (nodeChildNodes.length > vnodeChildNodes.length) {
-        for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
-            node.removeChild(nodeChildNodes[_i]);
+    if (!node.isEqualNode(vnode)) {
+        var nodeAttrs = node.attributes;
+        var vnodeAttrs = vnode.attributes;
+        if (nodeChildNodes.length > vnodeChildNodes.length) {
+            for (var _i = nodeChildNodes.length - 1; _i >= vnodeChildNodes.length; _i--) {
+                node.removeChild(nodeChildNodes[_i]);
+            }
+        } else if (nodeChildNodes.length < vnodeChildNodes.length) {
+            var frag = document.createDocumentFragment();
+            for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
+                frag.appendChild(vnodeChildNodes[_i2].cloneNode(true));
+            }
+            node.appendChild(frag);
         }
-    } else if (nodeChildNodes.length < vnodeChildNodes.length) {
-        var frag = document.createDocumentFragment();
-        for (var _i2 = nodeChildNodes.length; _i2 < vnodeChildNodes.length; _i2++) {
-            frag.appendChild(vnodeChildNodes[_i2].cloneNode(true));
+        for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
+            var name = nodeAttrs[_i3].name;
+            if (!vnode.hasAttribute(name)) {
+                node.removeAttribute(name);
+            }
         }
-        node.appendChild(frag);
-    }
-    for (var _i3 = nodeAttrs.length - 1; _i3 >= 0; _i3--) {
-        var name = nodeAttrs[_i3].name;
-        if (!vnode.hasAttribute(name)) {
-            node.removeAttribute(name);
-        }
-    }
-    for (var _i4 = vnodeAttrs.length - 1; _i4 >= 0; _i4--) {
-        var attr = vnodeAttrs[_i4];
-        var _name = attr.name;
-        var value = attr.value;
-        if (node.getAttribute(_name) !== value) {
-            node.setAttribute(_name, value);
+        for (var _i4 = vnodeAttrs.length - 1; _i4 >= 0; _i4--) {
+            var attr = vnodeAttrs[_i4];
+            var _name = attr.name;
+            var value = attr.value;
+            if (node.getAttribute(_name) !== value) {
+                node.setAttribute(_name, value);
+            }
         }
     }
 }
