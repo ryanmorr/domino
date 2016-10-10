@@ -15467,7 +15467,7 @@ var Domino = function () {
      * out of
      *
      * @constructor
-     * @param {Node} node
+     * @param {Node|String} node
      * @api private
      */
     function Domino(node) {
@@ -15578,7 +15578,7 @@ var Domino = function () {
  * Factory function for creating
  * `Domino` instances
  *
- * @param {Node} node (optional)
+ * @param {Node|String} node (optional)
  * @return {Domino}
  * @api public
  */
@@ -15716,11 +15716,14 @@ var supportsEventConstructors = function () {
  * Resolve a DOM node to return
  * an element node
  *
- * @param {Node} node
+ * @param {Node|String} node
  * @return {Node}
  * @api private
  */
 function getNode(node) {
+    if (typeof node === 'string') {
+        return document.querySelector(node);
+    }
     return node.nodeType === 9 ? node.documentElement : node;
 }
 
@@ -15844,6 +15847,11 @@ describe('domino', function () {
         (0, _chai.expect)(vnode.nodeName).to.equal('HTML');
         var vnode2 = (0, _domino2.default)(document);
         (0, _chai.expect)(vnode2.nodeName).to.equal('HTML');
+    });
+
+    it('should support a selector string', function () {
+        var vnode = (0, _domino2.default)('html');
+        (0, _chai.expect)(vnode.nodeName).to.equal('HTML');
     });
 
     it('should return the same instance if the same source node is used twice', function () {

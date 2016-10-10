@@ -21,11 +21,14 @@ const supportsEventConstructors = (() => {
  * Resolve a DOM node to return
  * an element node
  *
- * @param {Node} node
+ * @param {Node|String} node
  * @return {Node}
  * @api private
  */
 export function getNode(node) {
+    if (typeof node === 'string') {
+        return document.querySelector(node);
+    }
     return node.nodeType === 9 ? node.documentElement : node;
 }
 

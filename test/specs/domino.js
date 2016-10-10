@@ -33,6 +33,11 @@ describe('domino', () => {
         expect(vnode2.nodeName).to.equal('HTML');
     });
 
+    it('should support a selector string', () => {
+        const vnode = domino('html');
+        expect(vnode.nodeName).to.equal('HTML');
+    });
+
     it('should return the same instance if the same source node is used twice', () => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);

@@ -38,7 +38,7 @@ class Domino {
      * out of
      *
      * @constructor
-     * @param {Node} node
+     * @param {Node|String} node
      * @api private
      */
     constructor(node) {
@@ -125,7 +125,7 @@ class Domino {
  * Factory function for creating
  * `Domino` instances
  *
- * @param {Node} node (optional)
+ * @param {Node|String} node (optional)
  * @return {Domino}
  * @api public
  */
