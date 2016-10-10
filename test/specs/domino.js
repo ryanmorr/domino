@@ -268,6 +268,16 @@ describe('domino', () => {
         vnode.innerHTML = '<span></span>';
     });
 
+    it('should support the style attribute', (done) => {
+        const source = parseHTML('<div></div>');
+        const vnode = domino(source);
+        vnode.style.width = '10px';
+        frame(() => {
+            expect(source.style.width).to.equal('10px');
+            done();
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);

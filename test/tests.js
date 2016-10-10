@@ -16086,6 +16086,16 @@ describe('domino', function () {
         vnode.innerHTML = '<span></span>';
     });
 
+    it('should support the style attribute', function (done) {
+        var source = parseHTML('<div></div>');
+        var vnode = (0, _domino2.default)(source);
+        vnode.style.width = '10px';
+        frame(function () {
+            (0, _chai.expect)(source.style.width).to.equal('10px');
+            done();
+        });
+    });
+
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
