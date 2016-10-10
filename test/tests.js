@@ -26295,6 +26295,7 @@ describe('domino', function () {
     });
 
     it('should support complex changes', function (done) {
+        this.timeout(5000);
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
