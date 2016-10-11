@@ -1,6 +1,6 @@
 {
   "name": "domino",
-  "description": "Virtual DOM solution",
+  "description": "Virtual DOM library minus the virtual",
   "version": "0.1.0",
   "license": "Unlicense",
   "homepage": "https://github.com/ryanmorr/domino",
