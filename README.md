@@ -29,7 +29,7 @@ const vcontainer = vhtml.querySelector('#container');
 vcontainer.setAttribute('foo', 'bar');
 ```
 
-Pass a DOM element or selector string to get a virtual node for a specific portion of the DOM tree:
+Pass a DOM element or selector string to get a virtual node for a specific element:
 
 ``` javascript
 // Returns a clone for the `#container` element
