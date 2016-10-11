@@ -279,7 +279,7 @@ describe('domino', () => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
         vnode.setAttribute('id', 'foo');
-        vnode.className = 'foo bar baz';
+        vnode.classList.add('foo', 'bar', 'baz');
         vnode.style.color = 'red';
         timeout(() => {
             expect(source.id).to.equal(vnode.id);

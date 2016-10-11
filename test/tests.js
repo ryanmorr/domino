@@ -26326,7 +26326,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.setAttribute('id', 'foo');
-        vnode.className = 'foo bar baz';
+        vnode.classList.add('foo', 'bar', 'baz');
         vnode.style.color = 'red';
         timeout(function () {
             (0, _chai.expect)(source.id).to.equal(vnode.id);
