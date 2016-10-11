@@ -26069,8 +26069,8 @@ function parseHTML(html) {
 }
 
 // Schedule a frame to call a function
-function frame(fn) {
-    setTimeout(fn, 500);
+function timeout(fn) {
+    setTimeout(fn, 100);
 }
 
 describe('domino', function () {
@@ -26099,7 +26099,7 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         _domino2.default.destroy(vnode);
         vnode.setAttribute('id', 'foo');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
             done();
         });
@@ -26109,7 +26109,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.setAttribute('id', 'foo');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.id).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<div id="foo"></div>');
             done();
@@ -26120,7 +26120,7 @@ describe('domino', function () {
         var source = parseHTML('<section><div><span></span></div></section>');
         var vnode = (0, _domino2.default)(source);
         vnode.querySelector('span').setAttribute('id', 'foo');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('span').id).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span id="foo"></span></div></section>');
             done();
@@ -26131,7 +26131,7 @@ describe('domino', function () {
         var source = parseHTML('<div id="foo"></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.removeAttribute('id');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.hasAttribute('id')).to.equal(false);
             (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
             done();
@@ -26142,7 +26142,7 @@ describe('domino', function () {
         var source = parseHTML('<section><div><span id="foo"></span></div></section>');
         var vnode = (0, _domino2.default)(source);
         vnode.querySelector('span').removeAttribute('id');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('span').hasAttribute('id')).to.equal(false);
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
             done();
@@ -26153,7 +26153,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.appendChild(document.createElement('span'));
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.firstChild.nodeName).to.equal('SPAN');
             (0, _chai.expect)(source.outerHTML).to.equal('<div><span></span></div>');
             done();
@@ -26164,7 +26164,7 @@ describe('domino', function () {
         var source = parseHTML('<section><div></div></section>');
         var vnode = (0, _domino2.default)(source);
         vnode.querySelector('div').appendChild(document.createElement('span'));
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('div').firstChild.nodeName).to.equal('SPAN');
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
             done();
@@ -26175,7 +26175,7 @@ describe('domino', function () {
         var source = parseHTML('<div><span></span></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.removeChild(vnode.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.firstChild).to.equal(null);
             (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
             done();
@@ -26187,7 +26187,7 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         var vdiv = vnode.querySelector('div');
         vdiv.removeChild(vdiv.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('div').firstChild).to.equal(null);
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div></div></section>');
             done();
@@ -26199,7 +26199,7 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         var text = document.createTextNode('foo');
         vnode.appendChild(text);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.textContent).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<div>foo</div>');
             done();
@@ -26211,7 +26211,7 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         var text = document.createTextNode('foo');
         vnode.querySelector('span').appendChild(text);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('span').textContent).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
             done();
@@ -26222,7 +26222,7 @@ describe('domino', function () {
         var source = parseHTML('<div>foo</div>');
         var vnode = (0, _domino2.default)(source);
         vnode.removeChild(vnode.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.textContent).to.equal('');
             (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
             done();
@@ -26234,7 +26234,7 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         var vspan = vnode.querySelector('span');
         vspan.removeChild(vspan.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('span').textContent).to.equal('');
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span></span></div></section>');
             done();
@@ -26246,11 +26246,11 @@ describe('domino', function () {
         var vnode = (0, _domino2.default)(source);
         var text = document.createTextNode('foo');
         vnode.querySelector('span').appendChild(text);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.querySelector('span').textContent).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>foo</span></div></section>');
             text.data = 'bar';
-            frame(function () {
+            timeout(function () {
                 (0, _chai.expect)(source.querySelector('span').textContent).to.equal('bar');
                 (0, _chai.expect)(source.outerHTML).to.equal('<section><div><span>bar</span></div></section>');
                 done();
@@ -26262,7 +26262,7 @@ describe('domino', function () {
         var source = parseHTML('<div><span></span></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.replaceChild(document.createElement('em'), vnode.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.firstChild.nodeName).to.equal('EM');
             (0, _chai.expect)(source.outerHTML).to.equal('<div><em></em></div>');
             done();
@@ -26273,7 +26273,7 @@ describe('domino', function () {
         var source = parseHTML('<div><span></span></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.replaceChild(document.createTextNode('foo'), vnode.firstChild);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.firstChild.nodeValue).to.equal('foo');
             (0, _chai.expect)(source.outerHTML).to.equal('<div>foo</div>');
             done();
@@ -26284,10 +26284,10 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.innerHTML = '<section><span class="bar"></span></section>';
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.outerHTML).to.equal('<div><section><span class="bar"></span></section></div>');
             vnode.innerHTML = '';
-            frame(function () {
+            timeout(function () {
                 (0, _chai.expect)(source.outerHTML).to.equal('<div></div>');
                 done();
             });
@@ -26295,17 +26295,16 @@ describe('domino', function () {
     });
 
     it('should support complex changes', function (done) {
-        this.timeout(5000);
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
             vnode.innerHTML = '<section id="foo"><ul><li>1</li><li foo="bar">2</li><li>3</li><li>4</li></ul></section><i>baz</i><span class="a b c"></span><em></em>';
-            frame(function () {
+            timeout(function () {
                 (0, _chai.expect)(source.outerHTML).to.equal('<div><section id="foo"><ul><li>1</li><li foo="bar">2</li><li>3</li><li>4</li></ul></section><i>baz</i><span class="a b c"></span><em></em></div>');
                 vnode.innerHTML = '<section id="bar"><ul><li>1</li><li>2</li></ul></section><span class="a c"></span><em>quz</em>';
-                frame(function () {
+                timeout(function () {
                     (0, _chai.expect)(source.outerHTML).to.equal('<div><section id="bar"><ul><li>1</li><li>2</li></ul></section><span class="a c"></span><em>quz</em></div>');
                     done();
                 });
@@ -26317,7 +26316,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.innerHTML = '&copy;';
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.firstChild.nodeValue).to.equal('©');
             done();
         });
@@ -26329,7 +26328,7 @@ describe('domino', function () {
         vnode.setAttribute('id', 'foo');
         vnode.className = 'foo bar baz';
         vnode.style.color = 'red';
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.id).to.equal(vnode.id);
             (0, _chai.expect)(source.className).to.equal(vnode.className);
             (0, _chai.expect)(source.style.cssText).to.equal(vnode.style.cssText);
@@ -26353,7 +26352,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         vnode.style.width = '10px';
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.style.width).to.equal('10px');
             done();
         });
@@ -26363,7 +26362,7 @@ describe('domino', function () {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         (0, _jquery2.default)(vnode).attr('id', 'foo').addClass('bar').css({ width: '20px', height: '20px' }).append('<span class="baz"></span>');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.id).to.equal('foo');
             (0, _chai.expect)(source.className).to.equal('bar');
             (0, _chai.expect)(source.style.cssText).to.equal('width: 20px; height: 20px;');
@@ -26372,13 +26371,13 @@ describe('domino', function () {
         });
     });
 
-    it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {
+    it('should not schedule a timeout if the source DOM node is not rendered within the DOM', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         var spy = _sinon2.default.spy(window, 'requestAnimationFrame');
         vnode.setAttribute('id', 'foo');
         (0, _chai.expect)(spy.called).to.equal(false);
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(source.id).to.equal('foo');
             spy.restore();
             done();
@@ -26391,9 +26390,9 @@ describe('domino', function () {
         var spy = _sinon2.default.spy(window, 'requestAnimationFrame');
         document.body.appendChild(source);
         vnode.setAttribute('id', 'foo');
-        frame(function () {
+        timeout(function () {
             (0, _chai.expect)(spy.called).to.equal(true);
-            frame(function () {
+            timeout(function () {
                 (0, _chai.expect)(source.id).to.equal('foo');
                 document.body.removeChild(source);
                 spy.restore();
