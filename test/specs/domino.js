@@ -328,7 +328,7 @@ describe('domino', () => {
         });
     });
 
-    it('should not schedule a timeout if the source DOM node is not rendered within the DOM', (done) => {
+    it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = domino(source);
         const spy = sinon.spy(window, 'requestAnimationFrame');
