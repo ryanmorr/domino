@@ -2,7 +2,7 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex, contains, updateDOM, createEvent } from './util';
+import { getNode, findIndex, contains, updateDOM } from './util';
 
 /**
  * Cache of all `Domino` instances
@@ -103,7 +103,10 @@ class Domino {
     render() {
         this.renderer = null;
         patch(this.node, this.vnode);
-        this.getNode().dispatchEvent(createEvent('patch'));
+        this.getNode().dispatchEvent(new CustomEvent('patch', {
+            bubbles: false,
+            cancelable: false
+        }));
     }
 
     /**

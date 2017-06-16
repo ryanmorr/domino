@@ -25772,7 +25772,10 @@ var Domino = function () {
         value: function render() {
             this.renderer = null;
             (0, _patch2.default)(this.node, this.vnode);
-            this.getNode().dispatchEvent((0, _util.createEvent)('patch'));
+            this.getNode().dispatchEvent(new CustomEvent('patch', {
+                bubbles: false,
+                cancelable: false
+            }));
         }
 
         /**
@@ -25918,25 +25921,11 @@ exports.getNode = getNode;
 exports.findIndex = findIndex;
 exports.contains = contains;
 exports.updateDOM = updateDOM;
-exports.createEvent = createEvent;
 /**
  * Common variables
  */
 var frame = void 0;
 var batch = [];
-
-/**
- * Feature test support for creating
- * event via Event constructors
- */
-var supportsEventConstructors = function () {
-    try {
-        new CustomEvent('foo'); // eslint-disable-line no-new
-        return true;
-    } catch (e) {
-        return false;
-    }
-}();
 
 /**
  * Resolve a DOM node to return
@@ -26011,23 +26000,6 @@ function updateDOM(fn) {
             render();
         }
     });
-}
-
-/**
- * Create a custom event to dispatch
- * on an element
- *
- * @param {String} type
- * @return {Event}
- * @api private
- */
-function createEvent(type) {
-    if (supportsEventConstructors) {
-        return new CustomEvent(type, { bubbles: false, cancelable: false });
-    }
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(type, false, false, null);
-    return evt;
 }
 
 },{}],77:[function(require,module,exports){
@@ -26371,7 +26343,7 @@ describe('domino', function () {
         });
     });
 
-    it('should not schedule a timeout if the source DOM node is not rendered within the DOM', function (done) {
+    it('should not schedule a frame if the source DOM node is not rendered within the DOM', function (done) {
         var source = parseHTML('<div></div>');
         var vnode = (0, _domino2.default)(source);
         var spy = _sinon2.default.spy(window, 'requestAnimationFrame');
