@@ -5,9 +5,9 @@ import patch from './patch';
 import { getNode, findIndex, contains, updateDOM } from './util';
 
 /**
- * Cache of all `Domino` instances
+ * Cache of all `Echo` instances
  */
-const dominos = [];
+const echos = [];
 
 /**
  * Get the supported `MutationObserver`
@@ -27,10 +27,10 @@ const observerOptions = {
 /**
  * Virtual DOM class
  *
- * @class Domino
+ * @class Echo
  * @api private
  */
-class Domino {
+class Echo {
 
     /**
      * Instantiate the class providing the
@@ -126,20 +126,20 @@ class Domino {
 
 /**
  * Factory function for creating
- * `Domino` instances
+ * `Echo` instances
  *
  * @param {Node|String} node (optional)
- * @return {Domino}
+ * @return {Echo}
  * @api public
  */
-function domino(node = document) {
+function echo(node = document) {
     node = getNode(node);
-    const index = findIndex(dominos, (dom) => dom.getNode() === node);
+    const index = findIndex(echos, (dom) => dom.getNode() === node);
     if (index !== -1) {
-        return dominos[index].getVNode();
+        return echos[index].getVNode();
     }
-    const dom = new Domino(node);
-    dominos.push(dom);
+    const dom = new Echo(node);
+    echos.push(dom);
     return dom.getVNode();
 }
 
@@ -149,16 +149,16 @@ function domino(node = document) {
  * @param {Node} node
  * @api public
  */
-domino.destroy = function destroy(node) {
-    const index = findIndex(dominos, (dom) => dom.getVNode() === node);
+echo.destroy = function destroy(node) {
+    const index = findIndex(echos, (dom) => dom.getVNode() === node);
     if (index !== -1) {
-        const dom = dominos[index];
+        const dom = echos[index];
         dom.destroy();
-        dominos.splice(index, 1);
+        echos.splice(index, 1);
     }
 };
 
 /**
- * Export the `domino` function
+ * Export the `echo` function
  */
-export default domino;
+export default echo;

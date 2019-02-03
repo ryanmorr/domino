@@ -1,18 +1,5 @@
-/* eslint-disable max-len */
-
-import { expect } from 'chai';
-import sinon from 'sinon';
 import $ from 'jquery';
-import domino from '../../src/domino';
-
-// Polyfill `requestAnimationFrame` and 'cancelAnimationFrame'
-// for PhantomJS
-window.requestAnimationFrame = window.requestAnimationFrame
-    || window.webkitRequestAnimationFrame
-    || function requestAnimationFrame(cb) { return window.setTimeout(cb, 1000 / 60); };
-
-window.cancelAnimationFrame = window.cancelAnimationFrame
-    || function cancelAnimationFrame(id) { window.clearTimeout(id); };
+import echo from '../../src/echo';
 
 // Parse HTML string into DOM node
 function parseHTML(html) {
@@ -26,31 +13,31 @@ function timeout(fn) {
     setTimeout(fn, 100);
 }
 
-describe('domino', () => {
+describe('echo', () => {
     it('should use the document element by default', () => {
-        const vnode = domino();
+        const vnode = echo();
         expect(vnode.nodeName).to.equal('HTML');
-        const vnode2 = domino(document);
+        const vnode2 = echo(document);
         expect(vnode2.nodeName).to.equal('HTML');
     });
 
     it('should support a selector string', () => {
-        const vnode = domino('html');
+        const vnode = echo('html');
         expect(vnode.nodeName).to.equal('HTML');
     });
 
     it('should return the same instance if the same source node is used twice', () => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
-        expect(domino(source)).to.equal(vnode);
-        const vnode2 = domino();
-        expect(domino(document)).to.equal(vnode2);
+        const vnode = echo(source);
+        expect(echo(source)).to.equal(vnode);
+        const vnode2 = echo();
+        expect(echo(document)).to.equal(vnode2);
     });
 
     it('should support destroying the instance', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
-        domino.destroy(vnode);
+        const vnode = echo(source);
+        echo.destroy(vnode);
         vnode.setAttribute('id', 'foo');
         timeout(() => {
             expect(source.hasAttribute('id')).to.equal(false);
@@ -60,7 +47,7 @@ describe('domino', () => {
 
     it('should support adding attributes', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.setAttribute('id', 'foo');
         timeout(() => {
             expect(source.id).to.equal('foo');
@@ -71,7 +58,7 @@ describe('domino', () => {
 
     it('should support adding deeply nested attributes', (done) => {
         const source = parseHTML('<section><div><span></span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.querySelector('span').setAttribute('id', 'foo');
         timeout(() => {
             expect(source.querySelector('span').id).to.equal('foo');
@@ -82,7 +69,7 @@ describe('domino', () => {
 
     it('should support removing attributes', (done) => {
         const source = parseHTML('<div id="foo"></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.removeAttribute('id');
         timeout(() => {
             expect(source.hasAttribute('id')).to.equal(false);
@@ -93,7 +80,7 @@ describe('domino', () => {
 
     it('should support removing deeply nested attributes', (done) => {
         const source = parseHTML('<section><div><span id="foo"></span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.querySelector('span').removeAttribute('id');
         timeout(() => {
             expect(source.querySelector('span').hasAttribute('id')).to.equal(false);
@@ -104,7 +91,7 @@ describe('domino', () => {
 
     it('should support adding elements', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.appendChild(document.createElement('span'));
         timeout(() => {
             expect(source.firstChild.nodeName).to.equal('SPAN');
@@ -115,7 +102,7 @@ describe('domino', () => {
 
     it('should support adding deeply nested elements', (done) => {
         const source = parseHTML('<section><div></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.querySelector('div').appendChild(document.createElement('span'));
         timeout(() => {
             expect(source.querySelector('div').firstChild.nodeName).to.equal('SPAN');
@@ -126,7 +113,7 @@ describe('domino', () => {
 
     it('should support removing elements', (done) => {
         const source = parseHTML('<div><span></span></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.removeChild(vnode.firstChild);
         timeout(() => {
             expect(source.firstChild).to.equal(null);
@@ -137,7 +124,7 @@ describe('domino', () => {
 
     it('should support removing deeply nested elements', (done) => {
         const source = parseHTML('<section><div><span></span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const vdiv = vnode.querySelector('div');
         vdiv.removeChild(vdiv.firstChild);
         timeout(() => {
@@ -149,7 +136,7 @@ describe('domino', () => {
 
     it('should support adding text nodes', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const text = document.createTextNode('foo');
         vnode.appendChild(text);
         timeout(() => {
@@ -161,7 +148,7 @@ describe('domino', () => {
 
     it('should support adding deeply nested text nodes', (done) => {
         const source = parseHTML('<section><div><span></span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const text = document.createTextNode('foo');
         vnode.querySelector('span').appendChild(text);
         timeout(() => {
@@ -173,7 +160,7 @@ describe('domino', () => {
 
     it('should support removing text nodes', (done) => {
         const source = parseHTML('<div>foo</div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.removeChild(vnode.firstChild);
         timeout(() => {
             expect(source.textContent).to.equal('');
@@ -184,7 +171,7 @@ describe('domino', () => {
 
     it('should support removing deeply nested text nodes', (done) => {
         const source = parseHTML('<section><div><span>foo</span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const vspan = vnode.querySelector('span');
         vspan.removeChild(vspan.firstChild);
         timeout(() => {
@@ -196,7 +183,7 @@ describe('domino', () => {
 
     it('should support changing deeply nested text node data', (done) => {
         const source = parseHTML('<section><div><span></span></div></section>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const text = document.createTextNode('foo');
         vnode.querySelector('span').appendChild(text);
         timeout(() => {
@@ -213,7 +200,7 @@ describe('domino', () => {
 
     it('should support changing the element type of nested nodes', (done) => {
         const source = parseHTML('<div><span></span></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.replaceChild(document.createElement('em'), vnode.firstChild);
         timeout(() => {
             expect(source.firstChild.nodeName).to.equal('EM');
@@ -224,7 +211,7 @@ describe('domino', () => {
 
     it('should support changing the node type of nested nodes', (done) => {
         const source = parseHTML('<div><span></span></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.replaceChild(document.createTextNode('foo'), vnode.firstChild);
         timeout(() => {
             expect(source.firstChild.nodeValue).to.equal('foo');
@@ -235,7 +222,7 @@ describe('domino', () => {
 
     it('should support manipulation via innerHTML', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.innerHTML = '<section><span class="bar"></span></section>';
         timeout(() => {
             expect(source.outerHTML).to.equal('<div><section><span class="bar"></span></section></div>');
@@ -249,7 +236,7 @@ describe('domino', () => {
 
     it('should support complex changes', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.innerHTML = '<section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span>';
         timeout(() => {
             expect(source.outerHTML).to.equal('<div><section><ul><li>1</li><li>2</li><li>3</li></ul></section><em>foo</em><span class="bar"></span></div>');
@@ -267,7 +254,7 @@ describe('domino', () => {
 
     it('should support HTML entities', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.innerHTML = '&copy;';
         timeout(() => {
             expect(source.firstChild.nodeValue).to.equal('©');
@@ -277,7 +264,7 @@ describe('domino', () => {
 
     it('should support reading attributes and properties from the virtual node', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.setAttribute('id', 'foo');
         vnode.classList.add('foo', 'bar', 'baz');
         vnode.style.color = 'red';
@@ -291,7 +278,7 @@ describe('domino', () => {
 
     it('should support the custom patch event', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         source.addEventListener('patch', (e) => {
             expect(e.type).to.equal('patch');
             expect(e.target).to.equal(source);
@@ -303,7 +290,7 @@ describe('domino', () => {
 
     it('should support the style attribute', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         vnode.style.width = '10px';
         timeout(() => {
             expect(source.style.width).to.equal('10px');
@@ -313,7 +300,7 @@ describe('domino', () => {
 
     it('should support manipulation via jQuery', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         $(vnode)
             .attr('id', 'foo')
             .addClass('bar')
@@ -330,7 +317,7 @@ describe('domino', () => {
 
     it('should not schedule a frame if the source DOM node is not rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const spy = sinon.spy(window, 'requestAnimationFrame');
         vnode.setAttribute('id', 'foo');
         expect(spy.called).to.equal(false);
@@ -343,7 +330,7 @@ describe('domino', () => {
 
     it('should schedule a frame to update the source DOM node if it is rendered within the DOM', (done) => {
         const source = parseHTML('<div></div>');
-        const vnode = domino(source);
+        const vnode = echo(source);
         const spy = sinon.spy(window, 'requestAnimationFrame');
         document.body.appendChild(source);
         vnode.setAttribute('id', 'foo');
