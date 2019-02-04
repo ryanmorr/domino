@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { echo, destroy } from '../../src/echo';
+import { echo, destroy } from '../../src/';
 
 // Parse HTML string into DOM node
 function parseHTML(html) {

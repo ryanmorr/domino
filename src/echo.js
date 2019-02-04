@@ -2,12 +2,7 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex, scheduleRender } from './util';
-
-/**
- * Cache of all `Echo` instances
- */
-const echos = [];
+import { scheduleRender } from './util';
 
 /**
  * MutationObserver options
@@ -25,7 +20,7 @@ const observerOptions = {
  * @class Echo
  * @api private
  */
-class Echo {
+export default class Echo {
 
     /**
      * Instantiate the class providing the
@@ -33,11 +28,11 @@ class Echo {
      * out of
      *
      * @constructor
-     * @param {Node|String} node
+     * @param {Element} node
      * @api private
      */
     constructor(node) {
-        this.node = getNode(node);
+        this.node = node;
         this.vnode = this.node.cloneNode(true);
         this.observer = new MutationObserver(this.onChange.bind(this));
         this.observer.observe(this.vnode, observerOptions);
@@ -59,7 +54,7 @@ class Echo {
     /**
      * Get the source DOM node
      *
-     * @return {Node}
+     * @return {Element}
      * @api private
      */
     getNode() {
@@ -69,7 +64,7 @@ class Echo {
     /**
      * Get the virtual DOM node
      *
-     * @return {Node}
+     * @return {Element}
      * @api private
      */
     getVNode() {
@@ -116,39 +111,5 @@ class Echo {
             return;
         }
         this.render();
-    }
-}
-
-/**
- * Factory function for creating
- * `Echo` instances
- *
- * @param {Node|String} node (optional)
- * @return {Echo}
- * @api public
- */
-export function echo(node = document) {
-    node = getNode(node);
-    const index = findIndex(echos, (dom) => dom.getNode() === node);
-    if (index !== -1) {
-        return echos[index].getVNode();
-    }
-    const dom = new Echo(node);
-    echos.push(dom);
-    return dom.getVNode();
-}
-
-/**
- * Stop future updates
- *
- * @param {Node} node
- * @api public
- */
-export function destroy(node) {
-    const index = findIndex(echos, (dom) => dom.getVNode() === node);
-    if (index !== -1) {
-        const dom = echos[index];
-        dom.destroy();
-        echos.splice(index, 1);
     }
 }
