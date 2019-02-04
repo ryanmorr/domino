@@ -2,7 +2,7 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex, updateDOM } from './util';
+import { getNode, findIndex, scheduleRender } from './util';
 
 /**
  * Cache of all `Echo` instances
@@ -85,7 +85,7 @@ class Echo {
     update() {
         if (!this.renderer) {
             this.renderer = this.render.bind(this);
-            updateDOM(this.renderer);
+            scheduleRender(this.renderer);
         }
     }
 

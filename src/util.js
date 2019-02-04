@@ -42,23 +42,25 @@ export function findIndex(arr, fn) {
 }
 
 /**
- * Use `requestAnimationFrame` to
- * batch DOM updates to boost
- * performance
+ * Schedule a frame to render DOM
+ * updates
  *
- * @param {Function} fn
+ * @param {Function} callback
  * @api private
  */
-export function updateDOM(fn) {
-    if (frame) {
-        cancelAnimationFrame(frame);
+export function scheduleRender(callback) {
+    if (!frame) {
+        frame = requestAnimationFrame(render);
     }
-    batch.push(fn);
-    frame = requestAnimationFrame(() => {
-        frame = null;
-        let render;
-        while ((render = batch.shift())) {
-            render();
-        }
-    });
+    batch.push(callback);
+}
+
+/**
+ * Render all the updates
+ *
+ * @api private
+ */
+function render() {
+    frame = null;
+    while (batch.length) batch.pop()();
 }
