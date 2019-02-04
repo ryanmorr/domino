@@ -132,7 +132,7 @@ class Echo {
  * @return {Echo}
  * @api public
  */
-function echo(node = document) {
+export function echo(node = document) {
     node = getNode(node);
     const index = findIndex(echos, (dom) => dom.getNode() === node);
     if (index !== -1) {
@@ -149,16 +149,11 @@ function echo(node = document) {
  * @param {Node} node
  * @api public
  */
-echo.destroy = function destroy(node) {
+export function destroy(node) {
     const index = findIndex(echos, (dom) => dom.getVNode() === node);
     if (index !== -1) {
         const dom = echos[index];
         dom.destroy();
         echos.splice(index, 1);
     }
-};
-
-/**
- * Export the `echo` function
- */
-export default echo;
+}

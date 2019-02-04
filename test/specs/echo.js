@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import echo from '../../src/echo';
+import { echo, destroy } from '../../src/echo';
 
 // Parse HTML string into DOM node
 function parseHTML(html) {
@@ -37,7 +37,7 @@ describe('echo', () => {
     it('should support destroying the instance', (done) => {
         const source = parseHTML('<div></div>');
         const vnode = echo(source);
-        echo.destroy(vnode);
+        destroy(vnode);
         vnode.setAttribute('id', 'foo');
         timeout(() => {
             expect(source.hasAttribute('id')).to.equal(false);
