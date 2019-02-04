@@ -42,22 +42,6 @@ export function findIndex(arr, fn) {
 }
 
 /**
- * Does the provided root element contain
- * the provided node
- *
- * @param {Element} root
- * @param {Element} el
- * @return {Boolean}
- * @api private
- */
-export function contains(root, el) {
-    if ('contains' in root) {
-        return root.contains(el);
-    }
-    return !!(root.compareDocumentPosition(el) & 16);
-}
-
-/**
  * Use `requestAnimationFrame` to
  * batch DOM updates to boost
  * performance

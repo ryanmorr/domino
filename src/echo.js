@@ -2,17 +2,12 @@
  * Import dependencies
  */
 import patch from './patch';
-import { getNode, findIndex, contains, updateDOM } from './util';
+import { getNode, findIndex, updateDOM } from './util';
 
 /**
  * Cache of all `Echo` instances
  */
 const echos = [];
-
-/**
- * Get the supported `MutationObserver`
- */
-const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 /**
  * MutationObserver options
@@ -116,7 +111,7 @@ class Echo {
      * @api private
      */
     onChange() {
-        if (contains(document, this.getNode())) {
+        if (document.contains(this.getNode())) {
             this.update();
             return;
         }
