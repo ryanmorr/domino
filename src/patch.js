@@ -2,8 +2,8 @@
  * Patch a source node to match
  * the virtual node
  *
- * @param {Node} node
- * @param {Node} vnode
+ * @param {Element} node
+ * @param {Element} vnode
  * @api private
  */
 export default function patch(node, vnode) {

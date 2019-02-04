@@ -2,7 +2,7 @@
  * Import dependencies
  */
 import Echo from './echo';
-import { getNode, findIndex } from './util';
+import { getElement } from './util';
 
 /**
  * Cache of all `Echo` instances
@@ -18,8 +18,8 @@ const echos = [];
  * @api public
  */
 export function echo(node = document) {
-    node = getNode(node);
-    const index = findIndex(echos, (dom) => dom.getNode() === node);
+    node = getElement(node);
+    const index = echos.findIndex((dom) => dom.getNode() === node);
     if (index !== -1) {
         return echos[index].getVNode();
     }
@@ -35,7 +35,7 @@ export function echo(node = document) {
  * @api public
  */
 export function destroy(node) {
-    const index = findIndex(echos, (dom) => dom.getVNode() === node);
+    const index = echos.findIndex((dom) => dom.getVNode() === node);
     if (index !== -1) {
         const dom = echos[index];
         dom.destroy();
