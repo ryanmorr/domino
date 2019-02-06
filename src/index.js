@@ -19,13 +19,13 @@ const echos = [];
  */
 export function echo(node = document) {
     node = getElement(node);
-    const index = echos.findIndex((dom) => dom.getNode() === node);
+    const index = echos.findIndex((echo) => echo.getNode() === node);
     if (index !== -1) {
         return echos[index].getVNode();
     }
-    const dom = new Echo(node);
-    echos.push(dom);
-    return dom.getVNode();
+    const echo = new Echo(node);
+    echos.push(echo);
+    return echo.getVNode();
 }
 
 /**
@@ -35,10 +35,10 @@ export function echo(node = document) {
  * @api public
  */
 export function destroy(node) {
-    const index = echos.findIndex((dom) => dom.getVNode() === node);
+    const index = echos.findIndex((echo) => echo.getVNode() === node);
     if (index !== -1) {
-        const dom = echos[index];
-        dom.destroy();
+        const echo = echos[index];
+        echo.destroy();
         echos.splice(index, 1);
     }
 }
