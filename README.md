@@ -1,49 +1,95 @@
-# domino
+# echo
 
 [![Version Badge][version-image]][project-url]
 [![Build Status][build-image]][build-url]
-[![Dependencies][dependencies-image]][project-url]
 [![License][license-image]][license-url]
-[![File Size][file-size-image]][project-url]
 
-> Virtual DOM library minus the virtual
+> A virtual DOM library minus the virtual
 
-Much like your typical virtual DOM library, domino returns a virtual node that is a clone of a source node. Any manipulation to the virtual node is automatically reflected in the source node in the most efficient manner possible. The difference is that domino returns a real DOM node, not an [abstract syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). This means there is no API to learn as you can take advantage of all the DOM methods you're accustomed to for maximum flexibility and portability.
+A proof of concept, echo works much like your typical virtual DOM library, providing a virtual node that is a clone of a source node. Any manipulation to the virtual node is automatically reflected in the source node. The difference is that echo returns a *real* DOM node, not an [abstract syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). Manipulating the virtual node outside of the DOM avoids unnecessarily triggering layouts and paints, allowing echo to handle updates to the source node in the most efficient manner. Because it's just a DOM node. there is no API to learn, so you can take advantage of all the DOM methods you're accustomed to for maximum flexibility and portability.
+
+## Install
+
+Download the [development](http://github.com/ryanmorr/echo/raw/master/dist/echo.js) or [minified](http://github.com/ryanmorr/echo/raw/master/dist/echo.min.js) version, or install via NPM:
+
+``` sh
+npm install @ryanmorr/echo
+```
 
 ## Usage
 
-Create a virtual node for the entire document by passing no arguments:
+Create a virtual node for a specific element by passing a DOM element or selector string to the `echo` function. Passing no arguments will create a virtual node for the entire document:
 
 ``` javascript
+import { echo } from '@ryanmorr/echo';
+
+// Returns a clone of the `#container` element
+const vcontainer = echo('#container');
+
 // Returns a clone of the <html> element
-const vhtml = domino();
+const vhtml = echo();
 
-// It's just a DOM node, no tricks
-vhtml.nodeName; // "HTML"
-
-// Manipulate the virtual DOM tree
-vhtml.classList.add('foo');
-
-// Query for and manipulate child nodes
-const vcontainer = vhtml.querySelector('#container');
-vcontainer.setAttribute('foo', 'bar');
+// They're just DOM nodes, no tricks
+vcontainer.nodeType; //=> 1
+vhtml.nodeName; //=> "HTML"
 ```
 
-Pass a DOM element or selector string to get a virtual node for a specific element:
+Manipulating any part of the virtual DOM tree will automatically trigger updates via a mutation observer, and schedule a frame to patch the source node:
 
 ``` javascript
-// Returns a clone for the `#container` element
-const vcontainer = domino('#container');
+const source = document.createElement('div');
+const vnode = echo(source);
 
-// Changes are restricted to the source element
-vcontainer.style.width = '100%';
+// Manipulate the virtual DOM tree
+vnode.setAttribute('foo', 'bar');
+
+// Updates are made in the following frame
+requestAnimationFrame(() => {
+    source.getAttribute('foo'); //=> "bar"
+});
+```
+
+How you manipulate the virtual node is inconsequential, because the source node will always be patched efficiently. This means you can use [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) and `innerHTML` for quick templating without concern for performance:
+
+``` javascript
+const source = document.querySelector('#users');
+const vnode = echo(source);
+
+// Data structure
+const users = [
+    'Joe',
+    'John',
+    'Lisa'
+];
+
+// Update the content
+vnode.innerHTML = `
+    <ul>  
+        ${users.map((name) => `<li>${name}</li>`).join('')}
+    </ul>
+`;
+```
+
+Listen for the `patch` event to detect when changes have occurred to the source DOM node:
+
+``` javascript
+const source = document.querySelector('#foo');
+const vnode = echo(source);
+
+// Remember to add the event listener to the source DOM node, not the virtual DOM node!
+source.addEventListener('patch', (e) => {
+    // React to changes
+});
+
+// Change something on the virtual node to dispatch the patch event
+vnode.classList.add('foo');
 ```
 
 Since the returned node is just an ordinary DOM node, it is [jQuery](http://jquery.com/)-compatible:
 
 ``` javascript
 // Wrap the virtual node with jQuery
-const vnode = $(domino('#foo'));
+const vnode = $(echo('#foo'));
 
 // Use jQuery like you usually do
 vnode.attr('foo', 'bar');
@@ -52,83 +98,16 @@ vnode.css({width: '20px', height: '20px'});
 vnode.append('<span class="baz"></span>');
 ```
 
-Use a templating engine, such as [Handlebars.js](http://handlebarsjs.com/):
+To stop functionality, pass the virtual DOM node to the `destroy` function:
 
 ``` javascript
-// Define an HTML template string
-var html = `
-    <section>
-        <ul>  
-            {{#users}}
-                <li>{{name}}</li>
-            {{/users}}
-        </ul>
-    </section>
-`;
+import { destroy } from '@ryanmorr/echo';
 
 // Create virtual node
-const vnode = domino('#users');
-
-// Compile the template
-const template = Handlebars.compile(html);
-
-// Use `innerHTML` without concern for performance
-vnode.innerHTML = template({
-    users: [
-        {name: 'Joe'}, 
-        {name: 'John'},
-        {name: 'Lisa'}
-    ]
-});
-```
-
-Use the `patch` event to detect when changes have occurred to the source DOM node:
-
-``` javascript
-// Get source and virtual nodes
-const source = document.querySelector('#container');
-const vnode = domino(source);
-
-// Remember to add the event listener to the source DOM node, not the virtual DOM node!
-source.addEventListener('patch', (e) => {
-    // React to changes
-});
-
-// Change something to invoke the patch event
-vnode.classList.add('foo');
-```
-
-To stop functionality, pass the virtual DOM node to the `domino.destroy` function:
-
-``` javascript
-// Create virtual node
-const vnode = domino();
+const vnode = echo();
 
 // Stop future updates
-domino.destroy(vnode);
-
-// Nullify the reference to clean up memory
-vnode = null
-```
-
-## Installation
-
-domino is [CommonJS](http://www.commonjs.org/) and [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) compatible with no dependencies. You can download the [development](http://github.com/ryanmorr/domino/raw/master/dist/domino.js) or [minified](http://github.com/ryanmorr/domino/raw/master/dist/domino.min.js) version, or install it in one of the following ways:
-
-``` sh
-npm install ryanmorr/domino
-
-bower install ryanmorr/domino
-```
-
-## Tests
-
-Open `test/runner.html` in your browser or test with PhantomJS by issuing the following commands:
-
-``` sh
-npm install
-npm install -g gulp
-gulp test
+destroy(vnode);
 ```
 
 ## License
@@ -139,7 +118,5 @@ This project is dedicated to the public domain as described by the [Unlicense](h
 [version-image]: https://badge.fury.io/gh/ryanmorr%2Fdomino.svg
 [build-url]: https://travis-ci.org/ryanmorr/domino
 [build-image]: https://travis-ci.org/ryanmorr/domino.svg
-[dependencies-image]: https://david-dm.org/ryanmorr/domino.svg
 [license-image]: https://img.shields.io/badge/license-Unlicense-blue.svg
 [license-url]: UNLICENSE
-[file-size-image]: https://badge-size.herokuapp.com/ryanmorr/domino/master/dist/domino.min.js.svg?color=blue&label=file%20size
