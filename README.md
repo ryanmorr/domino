@@ -114,9 +114,9 @@ destroy(vnode);
 
 This project is dedicated to the public domain as described by the [Unlicense](http://unlicense.org/).
 
-[project-url]: https://github.com/ryanmorr/domino
-[version-image]: https://badge.fury.io/gh/ryanmorr%2Fdomino.svg
-[build-url]: https://travis-ci.org/ryanmorr/domino
-[build-image]: https://travis-ci.org/ryanmorr/domino.svg
+[project-url]: https://github.com/ryanmorr/echo
+[version-image]: https://badge.fury.io/gh/ryanmorr%2Fecho.svg
+[build-url]: https://travis-ci.org/ryanmorr/echo
+[build-image]: https://travis-ci.org/ryanmorr/echo.svg
 [license-image]: https://img.shields.io/badge/license-Unlicense-blue.svg
 [license-url]: UNLICENSE
